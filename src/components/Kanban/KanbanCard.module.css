@@ -1,0 +1,439 @@
+.card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  transition: all var(--transition-fast);
+  cursor: default;
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Pinned */
+.pinned {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary-glow);
+}
+
+.pinIndicator {
+  position: absolute;
+  top: -6px;
+  left: 10px;
+  font-size: 12px;
+}
+
+/* Drag states */
+.dragging {
+  opacity: 0.35;
+  border: 1px dashed var(--accent-primary);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.overlay {
+  background: var(--bg-raised);
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5),
+              0 0 20px var(--accent-primary-glow);
+  cursor: grabbing;
+}
+
+/* Top right: menu + drag handle */
+.topRight {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  z-index: 3;
+}
+
+.card:hover .topRight {
+  opacity: 1;
+}
+
+.menuBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.menuBtn:hover {
+  background: var(--glass-hover);
+  color: var(--text-primary);
+}
+
+/* Drag Handle */
+.dragHandle {
+  cursor: grab;
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.dragHandle:hover {
+  background: var(--glass-hover);
+  color: var(--text-secondary);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.gripIcon {
+  font-size: 14px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* Context menu */
+.contextMenu {
+  position: absolute;
+  top: 32px;
+  right: 8px;
+  z-index: 10;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  min-width: 170px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 150ms ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: var(--glass-hover);
+  color: var(--text-primary);
+}
+
+.menuDanger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--accent-error);
+}
+
+/* Labels */
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.labelRemove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color var(--transition-fast);
+}
+
+.labelRemove:hover {
+  color: #fff;
+}
+
+/* Label input row */
+.labelInputRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.labelInput {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.labelInput:focus {
+  border-color: var(--accent-primary);
+}
+
+.colorPicker {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.colorDot:hover {
+  transform: scale(1.2);
+}
+
+.colorSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px var(--bg-surface);
+}
+
+.labelActions {
+  display: flex;
+  gap: 4px;
+}
+
+.labelConfirm,
+.labelCancel {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.labelConfirm {
+  color: var(--accent-success);
+  border-color: var(--accent-success);
+}
+
+.labelConfirm:hover,
+.labelCancel:hover {
+  background: var(--glass-hover);
+}
+
+/* Card Header */
+.cardHeader {
+  cursor: pointer;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  margin: 0;
+  flex: 1;
+}
+
+.editTitleBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 12px;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.titleWrapper:hover .editTitleBtn {
+  opacity: 1;
+}
+
+.editTitleBtn:hover {
+  transform: scale(1.1);
+}
+
+.titleInput {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-primary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+/* Progress */
+.progressArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--transition-base);
+}
+
+.progressText {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Checklist Master */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.checkItem:hover {
+  background: var(--glass-hover);
+}
+
+.checkInput {
+  display: none;
+}
+
+.checkBox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.checkDone .checkBox {
+  border-color: var(--accent-success);
+  background: var(--accent-success);
+  color: var(--text-inverse);
+}
+
+.checkLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.checkDone .checkLabel {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* Expand hint */
+.expandHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.hintText {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.hintText:hover {
+  color: var(--accent-primary);
+}

@@ -1,0 +1,274 @@
+"use client";
+
+import styles from "./ChannelDetailView.module.css";
+import { useState } from "react";
+import type { Creative, CreativeWithCampaign, Channel } from "../Kanban/KanbanBoard";
+import CreativeDetailPanel from "./CreativeDetailPanel";
+
+interface Props {
+  channelType: Channel;
+  creatives: CreativeWithCampaign[];
+  onBack: () => void;
+  onUpdateCreative: (creativeId: string, updates: Partial<Creative>) => void;
+  hookTypes: string[];
+  formats: string[];
+  ctaTypes: string[];
+  onAddCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
+  onRemoveCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
+  trafegoSubs: string[];
+  onAddSubChannel: (value: string) => void;
+  onRemoveSubChannel: (value: string) => void;
+}
+
+const CHANNEL_META: Record<Channel, { icon: string; description: string }> = {
+  "Tráfego Pago": {
+    icon: "📢",
+    description: "Facebook ADS • Google ADS • TikTok ADS",
+  },
+  "Orgânicos": {
+    icon: "🌱",
+    description: "Instagram • TikTok • YouTube",
+  },
+};
+
+export default function ChannelDetailView({
+  channelType,
+  creatives,
+  onBack,
+  onUpdateCreative,
+  hookTypes,
+  formats,
+  ctaTypes,
+  onAddCustomOption,
+  onRemoveCustomOption,
+  trafegoSubs,
+  onAddSubChannel,
+  onRemoveSubChannel,
+}: Props) {
+  const [selectedCreative, setSelectedCreative] = useState<CreativeWithCampaign | null>(null);
+  const [filter, setFilter] = useState("");
+  const meta = CHANNEL_META[channelType];
+
+  // Edição Nome Criativo
+  const [editingCreativeId, setEditingCreativeId] = useState<string | null>(null);
+  const [creativeNameVal, setCreativeNameVal] = useState("");
+
+  const startEditingCreative = (cr: CreativeWithCampaign) => {
+    setEditingCreativeId(cr.id);
+    setCreativeNameVal(cr.name);
+  };
+
+  const handleSaveCreativeName = (cr: CreativeWithCampaign) => {
+    const trimmed = creativeNameVal.trim();
+    if (trimmed && trimmed !== cr.name) {
+      onUpdateCreative(cr.id, { name: trimmed });
+    }
+    setEditingCreativeId(null);
+  };
+
+  const sorted = [...creatives].sort((a, b) => b.createdAt - a.createdAt);
+
+  const filtered = sorted.filter((cr) => {
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (
+      cr.name.toLowerCase().includes(q) ||
+      cr.campaignTitle.toLowerCase().includes(q) ||
+      cr.hookType.toLowerCase().includes(q) ||
+      cr.format.toLowerCase().includes(q) ||
+      cr.ctaType.toLowerCase().includes(q) ||
+      cr.subChannels.some((s) => s.toLowerCase().includes(q))
+    );
+  });
+
+  return (
+    <div className={styles.container}>
+      {/* Header */}
+      <div className={styles.header}>
+        <button className={styles.backBtn} onClick={onBack}>
+          ← Voltar ao Kanban
+        </button>
+        <div className={styles.headerInfo}>
+          <div className={styles.titleRow}>
+            <span className={styles.icon}>{meta.icon}</span>
+            <h1 className={styles.title}>{channelType}</h1>
+          </div>
+          <div className={styles.meta}>
+            <span className={styles.metaDesc}>{meta.description}</span>
+            <span className={styles.metaDivider}>•</span>
+            <span className={styles.metaItem}>{creatives.length} criativos</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className={styles.filterBar}>
+        <input
+          type="text"
+          className={styles.filterInput}
+          placeholder="🔍 Filtrar por nome, campanha, sub-canal..."
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
+        {filter && (
+          <span className={styles.filterCount}>
+            {filtered.length} de {creatives.length}
+          </span>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={styles.thUpload}>Upload</th>
+              <th className={styles.thCampaign}>Campanha</th>
+              <th className={styles.thName}>Nome do Criativo</th>
+              <th>Hook</th>
+              <th>Formato</th>
+              <th>CTA</th>
+              <th>Sub-canais</th>
+              <th>Drive</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((creative) => (
+              <tr
+                key={creative.id}
+                className={`${styles.row} ${
+                  selectedCreative?.id === creative.id ? styles.rowActive : ""
+                }`}
+                onClick={() => setSelectedCreative(creative)}
+              >
+                <td className={styles.tdUpload}>
+                  <button
+                    className={`${styles.uploadTag} ${
+                      creative.uploadedToChannels ? styles.tagYes : styles.tagNo
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateCreative(creative.id, {
+                        uploadedToChannels: !creative.uploadedToChannels,
+                      });
+                    }}
+                  >
+                    {creative.uploadedToChannels ? "Subido ✓" : "Não subido"}
+                  </button>
+                </td>
+                <td className={styles.tdCampaign}>
+                  <span className={styles.campaignPill}>{creative.campaignTitle}</span>
+                </td>
+                <td className={styles.tdName}>
+                  {editingCreativeId === creative.id ? (
+                    <input
+                      type="text"
+                      className={styles.nameInput}
+                      value={creativeNameVal}
+                      onChange={(e) => setCreativeNameVal(e.target.value)}
+                      onBlur={() => handleSaveCreativeName(creative)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveCreativeName(creative);
+                        if (e.key === "Escape") setEditingCreativeId(null);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  ) : (
+                    <div className={styles.nameWrapper}>
+                      <span
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          startEditingCreative(creative);
+                        }}
+                        title="Duplo clique para renomear"
+                      >
+                        {creative.name}
+                      </span>
+                      <button
+                        className={styles.editNameBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditingCreative(creative);
+                        }}
+                        title="Renomear criativo"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  )}
+                </td>
+                <td>
+                  <span className={styles.pill}>{creative.hookType}</span>
+                </td>
+                <td>
+                  <span className={styles.pillFormat}>{creative.format}</span>
+                </td>
+                <td>
+                  <span className={styles.pillCta}>{creative.ctaType}</span>
+                </td>
+                <td className={styles.tdSubs}>
+                  {creative.subChannels.length > 0 ? (
+                    <div className={styles.subTags}>
+                      {creative.subChannels.map((s) => (
+                        <span key={s} className={styles.subTag}>{s}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className={styles.empty}>—</span>
+                  )}
+                </td>
+                <td className={styles.tdDrive}>
+                  {creative.driveLink ? (
+                    <a
+                      href={creative.driveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.driveLink}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      📁 Abrir
+                    </a>
+                  ) : (
+                    <span className={styles.empty}>—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {creatives.length === 0 && (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}>{meta.icon}</span>
+            <p>Nenhum criativo vinculado a {channelType}</p>
+            <p className={styles.emptyHint}>
+              Selecione &quot;{channelType}&quot; nos canais de um criativo para aparecer aqui
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Creative Detail Panel (slide-in) */}
+      {selectedCreative && (
+        <CreativeDetailPanel
+          creative={selectedCreative}
+          onClose={() => setSelectedCreative(null)}
+          onUpdate={(updates: Partial<Creative>) => {
+            onUpdateCreative(selectedCreative.id, updates);
+            setSelectedCreative((prev) => (prev ? { ...prev, ...updates } : null));
+          }}
+          hookTypes={hookTypes}
+          formats={formats}
+          ctaTypes={ctaTypes}
+          onAddCustomOption={onAddCustomOption}
+          onRemoveCustomOption={onRemoveCustomOption}
+          trafegoSubs={trafegoSubs}
+          organicoSubs={trafegoSubs}
+          onAddSubChannel={(ch, v) => onAddSubChannel(v)}
+          onRemoveSubChannel={(ch, v) => onRemoveSubChannel(v)}
+        />
+      )}
+    </div>
+  );
+}
