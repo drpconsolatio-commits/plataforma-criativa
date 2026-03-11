@@ -13,8 +13,9 @@ interface Props {
   hookTypes: string[];
   formats: string[];
   ctaTypes: string[];
-  onAddCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
-  onRemoveCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
+  onAddCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  onRemoveCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  objectives: string[];
   trafegoSubs: string[];
   onAddSubChannel: (value: string) => void;
   onRemoveSubChannel: (value: string) => void;
@@ -44,6 +45,7 @@ export default function ChannelDetailView({
   trafegoSubs,
   onAddSubChannel,
   onRemoveSubChannel,
+  objectives,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<CreativeWithCampaign | null>(null);
   const [filter, setFilter] = useState("");
@@ -80,6 +82,16 @@ export default function ChannelDetailView({
       cr.subChannels.some((s) => s.toLowerCase().includes(q))
     );
   });
+
+  const getObjectiveClass = (obj: string) => {
+    const o = obj.toLowerCase();
+    if (o.includes("captação")) return styles.objCaptacao;
+    if (o.includes("conversão")) return styles.objConversao;
+    if (o.includes("app")) return styles.objApp;
+    if (o.includes("perpétuo")) return styles.objPerpetuo;
+    if (o.includes("google")) return styles.objGoogle;
+    return "";
+  };
 
   return (
     <div className={styles.container}>
@@ -206,7 +218,13 @@ export default function ChannelDetailView({
                 </td>
                 {channelType === "Tráfego Pago" ? (
                   <td>
-                    <span className={styles.pillObjective}>{creative.objective || <span className={styles.empty}>—</span>}</span>
+                    {creative.objective ? (
+                      <span className={`${styles.pillObjective} ${getObjectiveClass(creative.objective)}`}>
+                        {creative.objective}
+                      </span>
+                    ) : (
+                      <span className={styles.empty}>—</span>
+                    )}
                   </td>
                 ) : (
                   <>
@@ -277,6 +295,7 @@ export default function ChannelDetailView({
           ctaTypes={ctaTypes}
           onAddCustomOption={onAddCustomOption}
           onRemoveCustomOption={onRemoveCustomOption}
+          objectives={objectives}
           trafegoSubs={trafegoSubs}
           organicoSubs={trafegoSubs}
           onAddSubChannel={(ch, v) => onAddSubChannel(v)}

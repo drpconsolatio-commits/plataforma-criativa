@@ -14,8 +14,9 @@ interface Props {
   hookTypes: string[];
   formats: string[];
   ctaTypes: string[];
-  onAddCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
-  onRemoveCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
+  onAddCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  onRemoveCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  objectives: string[];
   trafegoSubs: string[];
   organicoSubs: string[];
   onAddSubChannel: (channel: Channel, value: string) => void;
@@ -39,6 +40,7 @@ export default function CampaignDetailView({
   onAddSubChannel,
   onRemoveSubChannel,
   onRenameCampaign,
+  objectives,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
   const [filter, setFilter] = useState("");
@@ -339,6 +341,7 @@ export default function CampaignDetailView({
           ctaTypes={ctaTypes}
           onAddCustomOption={onAddCustomOption}
           onRemoveCustomOption={onRemoveCustomOption}
+          objectives={objectives}
           trafegoSubs={trafegoSubs}
           organicoSubs={organicoSubs}
           onAddSubChannel={onAddSubChannel}

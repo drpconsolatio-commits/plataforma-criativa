@@ -39,6 +39,7 @@ export type Channel = (typeof CHANNELS)[number];
 // Sub-channels per pipeline
 export const DEFAULT_TRAFEGO_SUBS = ["Facebook ADS", "Google ADS", "TikTok ADS"];
 export const DEFAULT_ORGANICO_SUBS = ["Instagram", "TikTok"];
+export const DEFAULT_OBJECTIVES = ["captação", "conversão", "perpétuo", "app", "google"];
 
 export interface ChannelWithSubs {
   channel: Channel;
@@ -231,6 +232,7 @@ export default function KanbanBoard() {
   const [customHookTypes, setCustomHookTypes] = useState<string[]>(() => loadState("kb_hooks", DEFAULT_HOOK_TYPES));
   const [customFormats, setCustomFormats] = useState<string[]>(() => loadState("kb_formats", DEFAULT_FORMATS));
   const [customCtaTypes, setCustomCtaTypes] = useState<string[]>(() => loadState("kb_ctas", DEFAULT_CTA_TYPES));
+  const [customObjectives, setCustomObjectives] = useState<string[]>(() => loadState("kb_objectives", DEFAULT_OBJECTIVES));
   const [trafegoSubs, setTrafegoSubs] = useState<string[]>(() => loadState("kb_trafego_subs", DEFAULT_TRAFEGO_SUBS));
   const [organicoSubs, setOrganicoSubs] = useState<string[]>(() => loadState("kb_organico_subs", DEFAULT_ORGANICO_SUBS));
   const [boardFilter, setBoardFilter] = useState("");
@@ -239,6 +241,7 @@ export default function KanbanBoard() {
   useEffect(() => { localStorage.setItem("kb_hooks", JSON.stringify(customHookTypes)); }, [customHookTypes]);
   useEffect(() => { localStorage.setItem("kb_formats", JSON.stringify(customFormats)); }, [customFormats]);
   useEffect(() => { localStorage.setItem("kb_ctas", JSON.stringify(customCtaTypes)); }, [customCtaTypes]);
+  useEffect(() => { localStorage.setItem("kb_objectives", JSON.stringify(customObjectives)); }, [customObjectives]);
   useEffect(() => { localStorage.setItem("kb_trafego_subs", JSON.stringify(trafegoSubs)); }, [trafegoSubs]);
   useEffect(() => { localStorage.setItem("kb_organico_subs", JSON.stringify(organicoSubs)); }, [organicoSubs]);
 
@@ -458,24 +461,28 @@ export default function KanbanBoard() {
   };
 
   // --- Add custom option ---
-  const addCustomOption = (type: "hook" | "format" | "cta", value: string) => {
+  const addCustomOption = (type: "hook" | "format" | "cta" | "objective", value: string) => {
     if (type === "hook" && !customHookTypes.includes(value)) {
       setCustomHookTypes((prev) => [...prev, value]);
     } else if (type === "format" && !customFormats.includes(value)) {
       setCustomFormats((prev) => [...prev, value]);
     } else if (type === "cta" && !customCtaTypes.includes(value)) {
       setCustomCtaTypes((prev) => [...prev, value]);
+    } else if (type === "objective" && !customObjectives.includes(value)) {
+      setCustomObjectives((prev) => [...prev, value]);
     }
   };
 
   // --- Remove custom option ---
-  const removeCustomOption = (type: "hook" | "format" | "cta", value: string) => {
+  const removeCustomOption = (type: "hook" | "format" | "cta" | "objective", value: string) => {
     if (type === "hook") {
       setCustomHookTypes((prev) => prev.filter((v) => v !== value));
     } else if (type === "format") {
       setCustomFormats((prev) => prev.filter((v) => v !== value));
     } else if (type === "cta") {
       setCustomCtaTypes((prev) => prev.filter((v) => v !== value));
+    } else if (type === "objective") {
+      setCustomObjectives((prev) => prev.filter((v) => v !== value));
     }
   };
 
@@ -747,6 +754,7 @@ export default function KanbanBoard() {
         ctaTypes={customCtaTypes}
         onAddCustomOption={addCustomOption}
         onRemoveCustomOption={removeCustomOption}
+        objectives={customObjectives}
         trafegoSubs={trafegoSubs}
         organicoSubs={organicoSubs}
         onAddSubChannel={addSubChannel}
@@ -774,6 +782,7 @@ export default function KanbanBoard() {
         ctaTypes={customCtaTypes}
         onAddCustomOption={addCustomOption}
         onRemoveCustomOption={removeCustomOption}
+        objectives={customObjectives}
         trafegoSubs={activeView.channelType === "Tráfego Pago" ? trafegoSubs : organicoSubs}
         onAddSubChannel={(value: string) => addSubChannel(activeView.channelType, value)}
         onRemoveSubChannel={(value: string) => removeSubChannel(activeView.channelType, value)}

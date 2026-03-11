@@ -15,8 +15,9 @@ interface Props {
   hookTypes: string[];
   formats: string[];
   ctaTypes: string[];
-  onAddCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
-  onRemoveCustomOption: (type: "hook" | "format" | "cta", value: string) => void;
+  onAddCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  onRemoveCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  objectives: string[];
   trafegoSubs: string[];
   organicoSubs: string[];
   onAddSubChannel: (channel: Channel, value: string) => void;
@@ -38,9 +39,9 @@ function CustomSelect({
   value: string;
   options: string[];
   onChange: (v: string) => void;
-  onAdd: (type: "hook" | "format" | "cta", value: string) => void;
-  onRemove: (type: "hook" | "format" | "cta", value: string) => void;
-  optionType: "hook" | "format" | "cta";
+  onAdd: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  onRemove: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  optionType: "hook" | "format" | "cta" | "objective";
 }) {
   const [adding, setAdding] = useState(false);
   const [managing, setManaging] = useState(false);
@@ -199,26 +200,26 @@ function SubChannelSelect({
 function ObjectiveSelect({
   value,
   onChange,
+  objectives,
+  onAddCustomOption,
+  onRemoveCustomOption,
 }: {
   value: string;
   onChange: (v: string) => void;
+  objectives: string[];
+  onAddCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
+  onRemoveCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
 }) {
-  const options = ["captação", "conversão", "perpétuo", "app", "google"];
-  
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>Objetivo</label>
-      <select
-        className={styles.select}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">Selecione um objetivo...</option>
-        {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    </div>
+      <CustomSelect
+          label="Objetivo"
+          value={value}
+          options={objectives}
+          onChange={onChange}
+          onAdd={onAddCustomOption}
+          onRemove={onRemoveCustomOption}
+          optionType="objective"
+      />
   );
 }
 
@@ -236,6 +237,7 @@ export default function CreativeDetailPanel({
   organicoSubs,
   onAddSubChannel,
   onRemoveSubChannel,
+  objectives,
 }: Props) {
   const { openChat } = useAgent();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -390,6 +392,9 @@ export default function CreativeDetailPanel({
              <ObjectiveSelect 
                value={creative.objective || ""} 
                onChange={(v) => onUpdate({ objective: v })} 
+               objectives={objectives}
+               onAddCustomOption={onAddCustomOption}
+               onRemoveCustomOption={onRemoveCustomOption}
              />
              <div className={styles.field}>
                 {/* Empty space for balance or add something else later */}
