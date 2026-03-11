@@ -3,6 +3,7 @@
 import styles from "./NewCampaignModal.module.css";
 import { useState } from "react";
 import type { Column } from "../Kanban/KanbanBoard";
+import { Sparkles } from "lucide-react";
 
 interface Props {
   columns: Column[];
@@ -154,7 +155,7 @@ export default function NewCampaignModal({ columns, onClose, onCreate }: Props) 
               className={styles.submitBtn}
               disabled={!title.trim()}
             >
-              <span className={styles.submitIcon}>✦</span>
+              <span className={styles.submitIcon}><Sparkles size={16} /></span>
               Criar Campanha
             </button>
           </div>

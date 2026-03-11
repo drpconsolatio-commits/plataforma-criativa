@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
 import { getBadgeStyle } from "../../utils/colors";
+import { ArrowLeft, Check, Sparkles, Pencil } from "lucide-react";
 
 interface Props {
   card: { id: string; title: string; date: string; creatives: Creative[] };
@@ -135,8 +136,8 @@ export default function CampaignDetailView({
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>
-          ← Voltar ao Kanban
+        <button className={styles.backBtn} onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ArrowLeft size={14} /> Voltar ao Kanban
         </button>
         <div className={styles.headerInfo}>
           <div className={styles.titleRow}>
@@ -170,7 +171,7 @@ export default function CampaignDetailView({
                   onClick={() => setEditingCampaignTitle(true)}
                   title="Renomear campanha"
                 >
-                  ✏️
+                  <Pencil size={14} />
                 </button>
               </>
             )}
@@ -193,7 +194,7 @@ export default function CampaignDetailView({
         <input
           type="text"
           className={styles.filterInput}
-          placeholder="🔍 Filtrar criativos por nome, hook, formato..."
+          placeholder="Filtrar criativos por nome, hook, formato..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -247,7 +248,7 @@ export default function CampaignDetailView({
                       creative.status === "done" ? styles.statusDone : ""
                     }`}
                   >
-                    {creative.status === "done" ? "✓" : ""}
+                    {creative.status === "done" ? <Check size={14} /> : ""}
                   </span>
                 </td>
                 <td className={styles.tdName}>
@@ -331,7 +332,7 @@ export default function CampaignDetailView({
 
         {card.creatives.length === 0 && (
           <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>✦</span>
+            <span className={styles.emptyIcon}><Sparkles size={48} strokeWidth={1} /></span>
             <p>Nenhum criativo nesta campanha</p>
             <button className={styles.addBtnSmall} onClick={handleAddCreative}>
               + Adicionar criativo

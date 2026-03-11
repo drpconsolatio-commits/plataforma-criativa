@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { Creative, CreativeWithCampaign, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
 import { getBadgeStyle } from "../../utils/colors";
+import { ArrowLeft, Check, Megaphone, Leaf, FolderOpen } from "lucide-react";
 
 interface Props {
   channelType: Channel;
@@ -22,13 +23,13 @@ interface Props {
   onRemoveSubChannel: (value: string) => void;
 }
 
-const CHANNEL_META: Record<Channel, { icon: string; description: string }> = {
+const CHANNEL_META: Record<Channel, { icon: React.ReactNode; description: string }> = {
   "Tráfego Pago": {
-    icon: "📢",
+    icon: <Megaphone size={28} />,
     description: "Facebook ADS • Google ADS • TikTok ADS",
   },
   "Orgânicos": {
-    icon: "🌱",
+    icon: <Leaf size={28} />,
     description: "Instagram • TikTok • YouTube",
   },
 };
@@ -92,8 +93,8 @@ export default function ChannelDetailView({
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>
-          ← Voltar ao Kanban
+        <button className={styles.backBtn} onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ArrowLeft size={14} /> Voltar ao Kanban
         </button>
         <div className={styles.headerInfo}>
           <div className={styles.titleRow}>
@@ -113,7 +114,7 @@ export default function ChannelDetailView({
         <input
           type="text"
           className={styles.filterInput}
-          placeholder="🔍 Filtrar por nome, campanha, sub-canal..."
+          placeholder="Filtrar por nome, campanha, sub-canal..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -166,7 +167,11 @@ export default function ChannelDetailView({
                       });
                     }}
                   >
-                    {creative.uploadedToChannels ? "Subido ✓" : "Não subido"}
+                    {creative.uploadedToChannels ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                        Subido <Check size={14} />
+                      </span>
+                    ) : "Não subido"}
                   </button>
                 </td>
                 <td className={styles.tdCampaign}>
@@ -258,8 +263,9 @@ export default function ChannelDetailView({
                       rel="noopener noreferrer"
                       className={styles.driveLink}
                       onClick={(e) => e.stopPropagation()}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      📁 Abrir
+                      <FolderOpen size={14} /> Abrir
                     </a>
                   ) : (
                     <span className={styles.empty}>—</span>

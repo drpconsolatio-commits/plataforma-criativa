@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./AgentChatPanel.module.css";
-import { X, Send, Bot, Sparkles, Mic, Square, Loader2, History, Search, PlusCircle, Trash2 } from "lucide-react";
+import { X, Send, Bot, Sparkles, Mic, Square, Loader2, History, Search, PlusCircle, Trash2, Check } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 // No useChat wrapper used, utilizing bare fetch instead for absolute control
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
@@ -340,7 +340,9 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
       {/* Export Toast */}
       {showExportToast && (
         <div className={styles.toast}>
-          Roteiro exportado com sucesso! ✓
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            Roteiro exportado com sucesso! <Check size={16} />
+          </div>
         </div>
       )}
     </div>
