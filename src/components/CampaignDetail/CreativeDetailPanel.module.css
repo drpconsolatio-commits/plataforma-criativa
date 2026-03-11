@@ -519,6 +519,27 @@
   box-shadow: 0 4px 12px var(--accent-primary-glow);
 }
 
+.consultBtn {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consultBtn:hover {
+  background: var(--glass-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 .generateBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;

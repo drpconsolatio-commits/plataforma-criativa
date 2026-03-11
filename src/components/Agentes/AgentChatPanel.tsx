@@ -6,6 +6,8 @@ import { useState, useRef, useEffect } from "react";
 // No useChat wrapper used, utilizing bare fetch instead for absolute control
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
 import { useAgentChats } from "../../hooks/useAgentChats";
+import { useAgent } from "@/context/AgentContext";
+import { supabase } from "@/lib/supabase";
 
 interface AgentChatPanelProps {
   agentId: string;
@@ -20,6 +22,18 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
   
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { targetCreativeId, setTargetCreative } = useAgent();
+  const [availableCreatives, setAvailableCreatives] = useState<{id: string, name: string}[]>([]);
+  const [showExportToast, setShowExportToast] = useState(false);
+
+  // Carregar criativos para o seletor de exportação
+  useEffect(() => {
+    async function loadCreatives() {
+      const { data } = await supabase.from('creatives').select('id, name').order('created_at', { ascending: false });
+      if (data) setAvailableCreatives(data);
+    }
+    loadCreatives();
+  }, []);
 
   // Integração com Supabase Histórico
   const { 
@@ -143,6 +157,30 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMessages]);
 
+  const handleExportToCreative = async (content: string) => {
+    if (!targetCreativeId) return;
+
+    // Buscar roteiros atuais do criativo
+    const { data: creative } = await supabase
+      .from('creatives')
+      .select('generated_scripts')
+      .eq('id', targetCreativeId)
+      .single();
+
+    const existingScripts = creative?.generated_scripts || [];
+    const newScripts = [...existingScripts, { script: content, createdAt: Date.now() }];
+
+    const { error } = await supabase
+      .from('creatives')
+      .update({ generated_scripts: newScripts })
+      .eq('id', targetCreativeId);
+
+    if (!error) {
+      setShowExportToast(true);
+      setTimeout(() => setShowExportToast(false), 3000);
+    }
+  };
+
   // Audio Hook integration
   const { isRecording, isTranscribing, toggleRecording } = useAudioRecorder((text: string) => {
      setInputText(prev => prev ? `${prev} ${text}` : text);
@@ -186,6 +224,24 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
           </div>
         </header>
 
+      {/* Export Target Selector (Sticky) */}
+      {activeTab === "chat" && (
+        <div className={styles.exportTargetArea}>
+          <Sparkles size={14} className={styles.exportIcon} />
+          <span className={styles.exportLabel}>Exportar para:</span>
+          <select 
+            className={styles.exportSelect}
+            value={targetCreativeId || ""}
+            onChange={(e) => setTargetCreative(e.target.value)}
+          >
+            <option value="">Escolha um criativo...</option>
+            {availableCreatives.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
         {activeTab === "chat" ? (
           <>
             <div className={styles.chatArea}>
@@ -195,6 +251,19 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
                    <div className={`${styles.messageBubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAi}`}>
                      {/* @ts-ignore */}
                      {msg.content}
+                     {msg.role === "assistant" && targetCreativeId && (
+                         <button 
+                           className={styles.exportBtn}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleExportToCreative(msg.content);
+                           }}
+                           title="Exportar como roteiro para o criativo selecionado"
+                         >
+                           <PlusCircle size={14} />
+                           <span>Exportar</span>
+                         </button>
+                      )}
                    </div>
                 </div>
               ))}
@@ -267,6 +336,13 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
           </div>
         )}
       </div>
+
+      {/* Export Toast */}
+      {showExportToast && (
+        <div className={styles.toast}>
+          Roteiro exportado com sucesso! ✓
+        </div>
+      )}
     </div>
   );
 }

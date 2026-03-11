@@ -1,11 +1,12 @@
 "use client";
 
 import styles from "./CreativeDetailPanel.module.css";
-import { useState, useRef } from "react";
-import { Mic, Square, Sparkles, Copy, Loader2, History, X, Check, Settings, Plus, Play } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Bot, Sparkles, Mic, Square, Loader2, Play, Check, Copy, History, Plus, Settings } from "lucide-react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import { CHANNELS } from "../Kanban/KanbanBoard";
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
+import { useAgent } from "@/context/AgentContext";
 
 interface Props {
   creative: Creative;
@@ -194,6 +195,33 @@ function SubChannelSelect({
   );
 }
 
+/* ---- Simple Objective Select ---- */
+function ObjectiveSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const options = ["captação", "conversão", "perpétuo", "app", "google"];
+  
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>Objetivo</label>
+      <select
+        className={styles.select}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">Selecione um objetivo...</option>
+        {options.map((o) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /* ---- Main Panel ---- */
 export default function CreativeDetailPanel({
   creative,
@@ -209,6 +237,7 @@ export default function CreativeDetailPanel({
   onAddSubChannel,
   onRemoveSubChannel,
 }: Props) {
+  const { openChat } = useAgent();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState("");
   // Estado para saber qual campo está recebendo o áudio agora
@@ -356,6 +385,17 @@ export default function CreativeDetailPanel({
             />
           </div>
 
+          {/* Objective Row */}
+          <div className={styles.fieldRow}>
+             <ObjectiveSelect 
+               value={creative.objective || ""} 
+               onChange={(v) => onUpdate({ objective: v })} 
+             />
+             <div className={styles.field}>
+                {/* Empty space for balance or add something else later */}
+             </div>
+          </div>
+
           <div className={styles.divider} />
 
           {/* Reference */}
@@ -417,13 +457,25 @@ export default function CreativeDetailPanel({
               <label className={styles.label}>
                 Roteiro Inteligente <Sparkles size={14} className={styles.labelAiBase} />
               </label>
-              <button 
-                className={styles.generateBtn} 
-                onClick={handleGenerateScript}
-                disabled={isGenerating}
-              >
-                {isGenerating ? <><Loader2 size={16} className={styles.spinIcon}/> Pensando...</> : <><Sparkles size={16}/> Gerar Novo Roteiro</>}
-              </button>
+               <button 
+                 className={styles.generateBtn} 
+                 onClick={handleGenerateScript}
+                 disabled={isGenerating}
+               >
+                 {isGenerating ? <><Loader2 size={16} className={styles.spinIcon}/> Pensando...</> : <><Sparkles size={16}/> Gerar Novo Roteiro</>}
+               </button>
+               
+               <button 
+                 className={styles.consultBtn}
+                 onClick={() => openChat({ 
+                   id: "cpy-1", 
+                   name: "Roteirista Consolatio", 
+                   role: "Copywriter Sênior" 
+                 }, creative.id)}
+                 title="Abrir chat com o roteirista especialista"
+               >
+                 <Bot size={16} /> Consultar Especialista
+               </button>
             </div>
             
             {/* Show just generated script if applies */}

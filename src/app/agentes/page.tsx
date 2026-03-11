@@ -2,8 +2,7 @@
 
 import styles from "./page.module.css";
 import { Bot, Plus, ArrowRight } from "lucide-react";
-import { useState } from "react";
-import AgentChatPanel from "../../components/Agentes/AgentChatPanel";
+import { useAgent } from "@/context/AgentContext";
 
 const AGENTS_MOCK = [
   {
@@ -21,7 +20,8 @@ const AGENTS_MOCK = [
 ];
 
 export default function AgentesPage() {
-  const [selectedAgent, setSelectedAgent] = useState<{id: string, name: string, role: string} | null>(null);
+  const { openChat } = useAgent();
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -45,7 +45,11 @@ export default function AgentesPage() {
       <div className={styles.content}>
         <div className={styles.agentsGrid}>
            {AGENTS_MOCK.map((agent) => (
-             <div key={agent.id} className={styles.agentCard} onClick={() => setSelectedAgent({ id: agent.id, name: agent.name, role: agent.role })}>
+             <div 
+               key={agent.id} 
+               className={styles.agentCard} 
+               onClick={() => openChat({ id: agent.id, name: agent.name, role: agent.role })}
+             >
                 <div className={styles.cardHeader}>
                   <div className={styles.cardAvatar}><Bot size={20} className={styles.headerIcon}/></div>
                   <span className={styles.statusBadge}>Online</span>
@@ -61,15 +65,6 @@ export default function AgentesPage() {
            ))}
         </div>
       </div>
-
-      {selectedAgent && (
-        <AgentChatPanel 
-          agentId={selectedAgent.id}
-          agentName={selectedAgent.name} 
-          agentRole={selectedAgent.role} 
-          onClose={() => setSelectedAgent(null)} 
-        />
-      )}
     </div>
   );
 }

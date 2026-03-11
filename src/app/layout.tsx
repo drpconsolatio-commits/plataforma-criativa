@@ -3,6 +3,8 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import styles from "./layout.module.css";
 
+import { Providers } from "./providers";
+
 export const metadata: Metadata = {
   title: "Plataforma Criativa | Gestão de Criativos",
   description:
@@ -17,10 +19,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <div className={styles.appShell}>
-          <Sidebar />
-          <main className={styles.mainContent}>{children}</main>
-        </div>
+        <Providers>
+          <div className={styles.appShell}>
+            <Sidebar />
+            <main className={styles.mainContent}>{children}</main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

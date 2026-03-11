@@ -42,6 +42,7 @@ export default function CampaignDetailView({
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
   const [filter, setFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "date" | "manual">("manual");
   
   // Edição Titulo Campanha
   const [editingCampaignTitle, setEditingCampaignTitle] = useState(false);
@@ -80,9 +81,20 @@ export default function CampaignDetailView({
     setEditingCreativeId(null);
   };
 
+  const handleCopyName = (name: string) => {
+    navigator.clipboard.writeText(name);
+    // Opcional: feedback visual ou toast
+  };
+
   const doneCount = card.creatives.filter((c) => c.status === "done").length;
 
-  const filteredCreatives = card.creatives.filter((c) => {
+  const sortedCreatives = [...card.creatives].sort((a, b) => {
+    if (sortBy === "name") return a.name.localeCompare(b.name);
+    if (sortBy === "date") return b.createdAt - a.createdAt;
+    return 0;
+  });
+
+  const filteredCreatives = sortedCreatives.filter((c) => {
     if (!filter) return true;
     const q = filter.toLowerCase();
     return (
@@ -182,6 +194,20 @@ export default function CampaignDetailView({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
+        
+        <div className={styles.sortBar}>
+          <span className={styles.sortLabel}>Ordenar por:</span>
+          <select 
+            className={styles.sortSelect} 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
+            <option value="manual">Manual</option>
+            <option value="name">Nome (A-Z)</option>
+            <option value="date">Data (Mais recentes)</option>
+          </select>
+        </div>
+
         {filter && (
           <span className={styles.filterCount}>
             {filteredCreatives.length} de {card.creatives.length}
@@ -239,24 +265,19 @@ export default function CampaignDetailView({
                   ) : (
                     <div className={styles.nameWrapper}>
                       <span
+                        className={styles.nameText}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyName(creative.name);
+                        }}
                         onDoubleClick={(e) => {
                           e.stopPropagation();
                           startEditingCreative(creative);
                         }}
-                        title="Duplo clique para renomear"
+                        title="Clique p/ copiar • Duplo clique p/ editar"
                       >
                         {creative.name}
                       </span>
-                      <button
-                        className={styles.editNameBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditingCreative(creative);
-                        }}
-                        title="Renomear criativo"
-                      >
-                        ✏️
-                      </button>
                     </div>
                   )}
                 </td>

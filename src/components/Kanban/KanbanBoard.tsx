@@ -73,9 +73,9 @@ export interface Creative {
   uploadedToChannels: boolean;
   status: "pending" | "done";
   createdAt: number;
-  // Novos campos IA
   materialBase?: string;
   generatedScripts?: { script: string; createdAt: number }[];
+  objective?: string;
 }
 
 export interface CreativeWithCampaign extends Creative {
@@ -133,6 +133,7 @@ const createCreative = (
   createdAt: Date.now() - Math.random() * 100000,
   materialBase: "",
   generatedScripts: [],
+  objective: "",
   ...extra,
 });
 
@@ -193,6 +194,7 @@ export default function KanbanBoard() {
            createdAt: new Date(cr.created_at).getTime(),
            materialBase: cr.material_base || '',
            generatedScripts: cr.generated_scripts || [],
+           objective: cr.objective || '',
          });
       });
       const newCols = initialColumns.map(col => ({
@@ -346,6 +348,7 @@ export default function KanbanBoard() {
     if (updates.editingDirection !== undefined) dbUpdates.editing_direction = updates.editingDirection;
     if (updates.materialBase !== undefined) dbUpdates.material_base = updates.materialBase;
     if (updates.generatedScripts !== undefined) dbUpdates.generated_scripts = updates.generatedScripts;
+    if (updates.objective !== undefined) dbUpdates.objective = updates.objective;
     if (Object.keys(dbUpdates).length > 0) supabase.from('creatives').update(dbUpdates).eq('id', creativeId).then();
   
     setColumns((prev) =>
@@ -399,7 +402,8 @@ export default function KanbanBoard() {
        recording_direction: creative.recordingDirection,
        editing_direction: creative.editingDirection,
        material_base: creative.materialBase || "",
-       generated_scripts: creative.generatedScripts || []
+       generated_scripts: creative.generatedScripts || [],
+       objective: creative.objective || ""
     }).then();
   
     setColumns((prev) =>

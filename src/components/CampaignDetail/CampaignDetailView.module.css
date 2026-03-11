@@ -179,6 +179,37 @@
   white-space: nowrap;
 }
 
+/* Sorting */
+.sortBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sortLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sortSelect {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sortSelect:hover {
+  border-color: var(--accent-primary);
+}
+
 /* Channel Tags */
 .channelTags {
   display: flex;
@@ -315,6 +346,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.nameText {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.nameText:hover {
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent-primary);
+}
+
+.nameText:active {
+  transform: scale(0.98);
+  background: rgba(124, 92, 252, 0.2);
 }
 
 .editNameBtn {

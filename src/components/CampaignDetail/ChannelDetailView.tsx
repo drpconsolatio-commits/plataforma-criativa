@@ -125,9 +125,15 @@ export default function ChannelDetailView({
               <th className={styles.thUpload}>Upload</th>
               <th className={styles.thCampaign}>Campanha</th>
               <th className={styles.thName}>Nome do Criativo</th>
-              <th>Hook</th>
-              <th>Formato</th>
-              <th>CTA</th>
+              {channelType === "Tráfego Pago" ? (
+                <th>Objetivo</th>
+              ) : (
+                <>
+                  <th>Hook</th>
+                  <th>Formato</th>
+                  <th>CTA</th>
+                </>
+              )}
               <th>Sub-canais</th>
               <th>Drive</th>
             </tr>
@@ -198,15 +204,23 @@ export default function ChannelDetailView({
                     </div>
                   )}
                 </td>
-                <td>
-                  <span className={styles.pill}>{creative.hookType}</span>
-                </td>
-                <td>
-                  <span className={styles.pillFormat}>{creative.format}</span>
-                </td>
-                <td>
-                  <span className={styles.pillCta}>{creative.ctaType}</span>
-                </td>
+                {channelType === "Tráfego Pago" ? (
+                  <td>
+                    <span className={styles.pillObjective}>{creative.objective || <span className={styles.empty}>—</span>}</span>
+                  </td>
+                ) : (
+                  <>
+                    <td>
+                      <span className={styles.pill}>{creative.hookType}</span>
+                    </td>
+                    <td>
+                      <span className={styles.pillFormat}>{creative.format}</span>
+                    </td>
+                    <td>
+                      <span className={styles.pillCta}>{creative.ctaType}</span>
+                    </td>
+                  </>
+                )}
                 <td className={styles.tdSubs}>
                   {creative.subChannels.length > 0 ? (
                     <div className={styles.subTags}>
