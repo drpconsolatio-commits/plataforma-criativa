@@ -8,6 +8,8 @@ import NewCampaignModal from "../Modal/NewCampaignModal";
 import CampaignDetailView from "../CampaignDetail/CampaignDetailView";
 import ChannelDetailView from "../CampaignDetail/ChannelDetailView";
 import { useState, useCallback, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
+import { Search, Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -71,6 +73,9 @@ export interface Creative {
   uploadedToChannels: boolean;
   status: "pending" | "done";
   createdAt: number;
+  // Novos campos IA
+  materialBase?: string;
+  generatedScripts?: { script: string; createdAt: number }[];
 }
 
 export interface CreativeWithCampaign extends Creative {
@@ -126,111 +131,17 @@ const createCreative = (
   uploadedToChannels: false,
   status,
   createdAt: Date.now() - Math.random() * 100000,
+  materialBase: "",
+  generatedScripts: [],
   ...extra,
 });
 
 const initialColumns: Column[] = [
-  {
-    id: "inspiracoes",
-    title: "Inspirações",
-    colorVar: "var(--col-inspiracao)",
-    cards: [
-      {
-        id: "c1",
-        title: "Campanha Verão 2026",
-        date: "09 Mar",
-        checklist: { roteirizacao: false, edicao: false },
-        pinned: false,
-        labels: [],
-        creatives: [
-          createCreative("cr1", "Referência TikTok — Beach Vibes", "Visual", "Lifestyle praia", "B-roll", "Suave", "done"),
-          createCreative("cr2", "Pinterest Moodboard Tropical", "Broll", "Estética tropical", "Institucional", "Emocional", "done"),
-          createCreative("cr3", 'Benchmark concorrente "SolBrasil"', "Talkinghead", "Comparação com concorrente", "Talkinghead", "Agressivo", "pending"),
-          createCreative("cr4", "Paleta de cores verão", "Visual", "Branding sazonal", "Institucional", "Suave", "pending"),
-        ],
-      },
-    ],
-  },
-  {
-    id: "roteirizacao",
-    title: "Roteirização",
-    colorVar: "var(--col-roteirizacao)",
-    cards: [
-      {
-        id: "c2",
-        title: "Lançamento Coleção Inverno",
-        date: "07 Mar",
-        checklist: { roteirizacao: false, edicao: false },
-        pinned: false,
-        labels: [],
-        creatives: [
-          createCreative("cr5", "Hook Visual — Antes & Depois", "Visual", "Transformação visual", "Talkinghead", "Agressivo", "done"),
-          createCreative("cr6", "Talkinghead + Broll — Storytelling", "Talkinghead", "Narrativa pessoal autêntica", "B-roll", "Emocional", "pending"),
-          createCreative("cr7", "CTA Agressivo — Oferta relâmpago", "Texto", "Urgência e escassez", "Trend", "FOMO", "pending"),
-        ],
-      },
-      {
-        id: "c3",
-        title: "Dia das Mães 2026",
-        date: "06 Mar",
-        checklist: { roteirizacao: false, edicao: false },
-        pinned: false,
-        labels: [],
-        creatives: [
-          createCreative("cr8", "Roteiro emocional — presenteie", "Talkinghead", "Emocional familiar", "Talkinghead", "Emocional", "pending"),
-          createCreative("cr9", "Roteiro combo kit especial", "Visual", "Oferta kit combo", "B-roll", "Agressivo", "pending"),
-        ],
-      },
-    ],
-  },
-  {
-    id: "edicao",
-    title: "Esteira de Edição",
-    colorVar: "var(--col-edicao)",
-    cards: [
-      {
-        id: "c4",
-        title: "Reels Março — Produto X",
-        date: "05 Mar",
-        checklist: { roteirizacao: true, edicao: false },
-        pinned: false,
-        labels: [],
-        creatives: [
-          createCreative("cr10", "Corte dinâmico — hook 3s", "Visual", "Impacto rápido primeiros segundos", "Trend", "Agressivo", "done"),
-          createCreative("cr11", "Legendas + efeitos sonoros", "Broll", "Entretenimento visual", "B-roll", "Suave", "pending"),
-          createCreative("cr12", "Versão quadrada para Feed", "Visual", "Reaproveitamento multi-formato", "Institucional", "Suave", "pending"),
-        ],
-      },
-    ],
-  },
-  {
-    id: "canais",
-    title: "Esteira de Canais",
-    colorVar: "var(--col-canais)",
-    cards: [
-      {
-        id: "c5",
-        title: "Campanha Meta — Fevereiro",
-        date: "03 Mar",
-        checklist: { roteirizacao: true, edicao: true },
-        pinned: false,
-        labels: [{ id: "l1", text: "Meta ADS", color: "#7c5cfc" }],
-        creatives: [
-          createCreative("cr13", "Criativo Feed — Imagem estática", "Visual", "Produto destaque hero", "Institucional", "Suave", "done", ["Tráfego Pago", "Orgânicos"], { driveLink: "https://drive.google.com/example", uploadedToChannels: true }),
-          createCreative("cr14", "Criativo Stories — Vídeo 15s", "Talkinghead", "Testemunho real cliente", "Talkinghead", "Emocional", "done", ["Orgânicos"], { driveLink: "https://drive.google.com/example2", uploadedToChannels: true }),
-          createCreative("cr15", "Criativo Reels — Vídeo 30s", "Broll", "Demonstração produto em uso", "B-roll", "Agressivo", "done", ["Orgânicos", "Tráfego Pago"], { driveLink: "https://drive.google.com/example3", uploadedToChannels: false }),
-          createCreative("cr16", "Criativo Google — Banner", "Visual", "Display awareness", "Institucional", "Suave", "done", ["Tráfego Pago"], { driveLink: "https://drive.google.com/example4", uploadedToChannels: true }),
-          createCreative("cr17", "Criativo TikTok — Vídeo 60s", "Talkinghead", "Storytelling longo formato", "Trend", "FOMO", "pending", ["Tráfego Pago"]),
-        ],
-      },
-    ],
-  },
-  {
-    id: "resultados",
-    title: "Análise de Resultados",
-    colorVar: "var(--col-resultados)",
-    cards: [],
-  },
+  { id: "inspiracoes", title: "Inspirações", colorVar: "var(--col-inspiracao)", cards: [] },
+  { id: "roteirizacao", title: "Roteirização", colorVar: "var(--col-roteirizacao)", cards: [] },
+  { id: "edicao", title: "Esteira de Edição", colorVar: "var(--col-edicao)", cards: [] },
+  { id: "canais", title: "Esteira de Canais", colorVar: "var(--col-canais)", cards: [] },
+  { id: "resultados", title: "Análise de Resultados", colorVar: "var(--col-resultados)", cards: [] },
 ];
 
 /* =============================================
@@ -254,7 +165,61 @@ export default function KanbanBoard() {
     }
   };
 
-  const [columns, setColumns] = useState<Column[]>(() => loadState("kb_columns", initialColumns));
+  const [columns, setColumns] = useState<Column[]>(initialColumns);
+
+  const fetchBoard = useCallback(async () => {
+    const { data: camps } = await supabase.from('campaigns').select('*').order('order_index', { ascending: true });
+    const { data: creats } = await supabase.from('creatives').select('*').order('created_at', { ascending: true });
+    if (camps) {
+      const creativesMap: Record<string, Creative[]> = {};
+      creats?.forEach(cr => {
+         if (!creativesMap[cr.campaign_id]) creativesMap[cr.campaign_id] = [];
+         creativesMap[cr.campaign_id].push({
+           id: cr.id,
+           name: cr.name,
+           hookType: cr.hook_type || '',
+           marketingAngle: cr.marketing_angle || '',
+           format: cr.format || '',
+           ctaType: cr.cta_type || '',
+           reference: cr.reference || '',
+           notes: cr.notes || '',
+           recordingDirection: cr.recording_direction || '',
+           editingDirection: cr.editing_direction || '',
+           channels: cr.channels || [],
+           subChannels: cr.sub_channels || [],
+           driveLink: cr.drive_link || '',
+           uploadedToChannels: cr.uploaded_to_channels || false,
+           status: cr.status || 'pending',
+           createdAt: new Date(cr.created_at).getTime(),
+           materialBase: cr.material_base || '',
+           generatedScripts: cr.generated_scripts || [],
+         });
+      });
+      const newCols = initialColumns.map(col => ({
+        ...col,
+        cards: camps.filter(c => c.column_id === col.id).map(c => ({
+          id: c.id,
+          title: c.title,
+          date: c.date,
+          pinned: c.pinned || false,
+          labels: c.labels || [],
+          checklist: { roteirizacao: c.checklist_roteirizacao || false, edicao: c.checklist_edicao || false },
+          creatives: creativesMap[c.id] || []
+        })).sort((a,b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1))
+      }));
+      setColumns(newCols);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBoard();
+    const channel = supabase.channel('board-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'campaigns' }, fetchBoard)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'creatives' }, fetchBoard)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchBoard]);
   const [activeCard, setActiveCard] = useState<CampaignCard | null>(null);
   const [activeColorVar, setActiveColorVar] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
@@ -269,7 +234,6 @@ export default function KanbanBoard() {
   const [boardFilter, setBoardFilter] = useState("");
 
   // --- Persist to localStorage ---
-  useEffect(() => { localStorage.setItem("kb_columns", JSON.stringify(columns)); }, [columns]);
   useEffect(() => { localStorage.setItem("kb_hooks", JSON.stringify(customHookTypes)); }, [customHookTypes]);
   useEffect(() => { localStorage.setItem("kb_formats", JSON.stringify(customFormats)); }, [customFormats]);
   useEffect(() => { localStorage.setItem("kb_ctas", JSON.stringify(customCtaTypes)); }, [customCtaTypes]);
@@ -291,11 +255,21 @@ export default function KanbanBoard() {
   };
 
   // --- Update checklist and auto-move ---
-  const updateChecklist = (
+  const updateChecklist = async (
     cardId: string,
     field: keyof Checklist,
     value: boolean
   ) => {
+    let targetColId: string | null = null;
+    const cardObj = columns.flatMap((c) => c.cards).find((c) => c.id === cardId);
+    if (cardObj && value) {
+      if (field === "roteirizacao" && !cardObj.checklist.edicao) targetColId = "edicao";
+      else if ((field === "roteirizacao" && cardObj.checklist.edicao) || (field === "edicao" && cardObj.checklist.roteirizacao)) targetColId = "canais";
+    }
+    const updates: Record<string, boolean | string> = { [`checklist_${field}`]: value };
+    if (targetColId) updates.column_id = targetColId;
+    supabase.from('campaigns').update(updates).eq('id', cardId).then();
+    
     setColumns((prev) => {
       const newCols = prev.map((col) => ({
         ...col,
@@ -350,11 +324,30 @@ export default function KanbanBoard() {
   };
 
   // --- Update a creative in state ---
-  const updateCreative = (
+  const updateCreative = async (
     campaignId: string,
     creativeId: string,
     updates: Partial<Creative>
   ) => {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.hookType !== undefined) dbUpdates.hook_type = updates.hookType;
+    if (updates.marketingAngle !== undefined) dbUpdates.marketing_angle = updates.marketingAngle;
+    if (updates.format !== undefined) dbUpdates.format = updates.format;
+    if (updates.ctaType !== undefined) dbUpdates.cta_type = updates.ctaType;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.channels !== undefined) dbUpdates.channels = updates.channels;
+    if (updates.subChannels !== undefined) dbUpdates.sub_channels = updates.subChannels;
+    if (updates.driveLink !== undefined) dbUpdates.drive_link = updates.driveLink;
+    if (updates.uploadedToChannels !== undefined) dbUpdates.uploaded_to_channels = updates.uploadedToChannels;
+    if (updates.reference !== undefined) dbUpdates.reference = updates.reference;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+    if (updates.recordingDirection !== undefined) dbUpdates.recording_direction = updates.recordingDirection;
+    if (updates.editingDirection !== undefined) dbUpdates.editing_direction = updates.editingDirection;
+    if (updates.materialBase !== undefined) dbUpdates.material_base = updates.materialBase;
+    if (updates.generatedScripts !== undefined) dbUpdates.generated_scripts = updates.generatedScripts;
+    if (Object.keys(dbUpdates).length > 0) supabase.from('creatives').update(dbUpdates).eq('id', creativeId).then();
+  
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -387,7 +380,28 @@ export default function KanbanBoard() {
   };
 
   // --- Add creative to campaign ---
-  const addCreativeToCampaign = (campaignId: string, creative: Creative) => {
+  const addCreativeToCampaign = async (campaignId: string, creative: Creative) => {
+    supabase.from('creatives').insert({
+       id: creative.id,
+       campaign_id: campaignId,
+       name: creative.name,
+       hook_type: creative.hookType,
+       marketing_angle: creative.marketingAngle,
+       format: creative.format,
+       cta_type: creative.ctaType,
+       status: creative.status,
+       channels: creative.channels,
+       sub_channels: creative.subChannels,
+       drive_link: creative.driveLink,
+       uploaded_to_channels: creative.uploadedToChannels,
+       reference: creative.reference,
+       notes: creative.notes,
+       recording_direction: creative.recordingDirection,
+       editing_direction: creative.editingDirection,
+       material_base: creative.materialBase || "",
+       generated_scripts: creative.generatedScripts || []
+    }).then();
+  
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -527,35 +541,48 @@ export default function KanbanBoard() {
     });
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveCard(null);
     setActiveColorVar("");
     if (!over) return;
+    
     const activeId = active.id as string;
     const overId = over.id as string;
+
+    const activeColAfterOver = findColumnByCardId(activeId);
+    if (activeColAfterOver) {
+      supabase.from('campaigns').update({ column_id: activeColAfterOver.id }).eq('id', activeId).then();
+    }
+
     if (activeId === overId) return;
 
-    const col = findColumnByCardId(activeId);
+    const col = activeColAfterOver;
     if (!col) return;
-    const overCol = findColumnByCardId(overId);
+    let overCol = findColumnByCardId(overId);
+    if (!overCol) overCol = columns.find(c => c.id === overId);
+    
     if (overCol && col.id === overCol.id) {
       setColumns((prev) => {
         const colIndex = prev.findIndex((c) => c.id === col.id);
         const oldIndex = prev[colIndex].cards.findIndex((c) => c.id === activeId);
         const newIndex = prev[colIndex].cards.findIndex((c) => c.id === overId);
         const newCols = [...prev];
-        newCols[colIndex] = {
-          ...newCols[colIndex],
-          cards: arrayMove(newCols[colIndex].cards, oldIndex, newIndex),
-        };
+        const newCards = arrayMove(newCols[colIndex].cards, oldIndex, newIndex);
+        newCols[colIndex] = { ...newCols[colIndex], cards: newCards };
+        
+        newCards.forEach((c, idx) => {
+           supabase.from('campaigns').update({ order_index: idx }).eq('id', c.id).then();
+        });
+        
         return newCols;
       });
     }
   };
 
   // --- Delete card ---
-  const deleteCard = (cardId: string) => {
+  const deleteCard = async (cardId: string) => {
+    supabase.from('campaigns').delete().eq('id', cardId).then();
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -565,7 +592,8 @@ export default function KanbanBoard() {
   };
 
   // --- Rename card ---
-  const renameCard = (cardId: string, newTitle: string) => {
+  const renameCard = async (cardId: string, newTitle: string) => {
+    supabase.from('campaigns').update({ title: newTitle }).eq('id', cardId).then();
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -584,7 +612,11 @@ export default function KanbanBoard() {
   };
 
   // --- Pin/unpin card ---
-  const togglePin = (cardId: string) => {
+  const togglePin = async (cardId: string) => {
+    const card = columns.flatMap((c) => c.cards).find((c) => c.id === cardId);
+    if (card) {
+       supabase.from('campaigns').update({ pinned: !card.pinned }).eq('id', cardId).then();
+    }
     setColumns((prev) =>
       prev.map((col) => {
         const cardIndex = col.cards.findIndex((c) => c.id === cardId);
@@ -600,7 +632,11 @@ export default function KanbanBoard() {
   };
 
   // --- Add label to card ---
-  const addLabelToCard = (cardId: string, label: Label) => {
+  const addLabelToCard = async (cardId: string, label: Label) => {
+    const card = columns.flatMap((c) => c.cards).find((c) => c.id === cardId);
+    if (card) {
+       supabase.from('campaigns').update({ labels: [...card.labels, label] }).eq('id', cardId).then();
+    }
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -612,7 +648,11 @@ export default function KanbanBoard() {
   };
 
   // --- Remove label from card ---
-  const removeLabelFromCard = (cardId: string, labelId: string) => {
+  const removeLabelFromCard = async (cardId: string, labelId: string) => {
+    const card = columns.flatMap((c) => c.cards).find((c) => c.id === cardId);
+    if (card) {
+       supabase.from('campaigns').update({ labels: card.labels.filter(l => l.id !== labelId) }).eq('id', cardId).then();
+    }
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -626,21 +666,23 @@ export default function KanbanBoard() {
   };
 
   // --- Modal handler ---
-  const handleCreateCampaign = (data: {
+  const handleCreateCampaign = async (data: {
     title: string;
     columnId: string;
     creativeNames: string[];
   }) => {
+    const campId = crypto.randomUUID();
+    const newCreatives = data.creativeNames.map((name, i) =>
+      createCreative(crypto.randomUUID(), name, "Visual", "", "Talkinghead", "Suave", "pending")
+    );
     const newCard: CampaignCard = {
-      id: `c${Date.now()}`,
+      id: campId,
       title: data.title,
       date: new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }),
       checklist: { roteirizacao: false, edicao: false },
       pinned: false,
       labels: [],
-      creatives: data.creativeNames.map((name, i) =>
-        createCreative(`cr${Date.now()}-${i}`, name, "Visual", "", "Talkinghead", "Suave", "pending")
-      ),
+      creatives: newCreatives as Creative[],
     };
     setColumns((prev) =>
       prev.map((col) =>
@@ -648,6 +690,38 @@ export default function KanbanBoard() {
       )
     );
     setShowModal(false);
+
+    await supabase.from('campaigns').insert({
+       id: campId,
+       title: newCard.title,
+       date: newCard.date,
+       column_id: data.columnId,
+       pinned: newCard.pinned,
+       checklist_roteirizacao: newCard.checklist.roteirizacao,
+       checklist_edicao: newCard.checklist.edicao,
+       labels: newCard.labels
+    });
+    
+    if (newCreatives.length > 0) {
+       await supabase.from('creatives').insert(newCreatives.map(cr => ({
+         id: cr.id,
+         campaign_id: campId,
+         name: cr.name,
+         hook_type: cr.hookType,
+         marketing_angle: cr.marketingAngle,
+         format: cr.format,
+         cta_type: cr.ctaType,
+         status: cr.status,
+         channels: cr.channels,
+         sub_channels: cr.subChannels,
+         drive_link: cr.driveLink,
+         uploaded_to_channels: cr.uploadedToChannels,
+         reference: cr.reference,
+         notes: cr.notes,
+         recording_direction: cr.recordingDirection,
+         editing_direction: cr.editingDirection
+       })));
+    }
   };
 
   /* ---- CAMPAIGN DETAIL VIEW ---- */
@@ -736,17 +810,21 @@ export default function KanbanBoard() {
             <span className={styles.subtitle}>Painel Kanban</span>
           </div>
           <div className={styles.headerCenter}>
-            <input
-              type="text"
-              className={styles.filterInput}
-              placeholder="🔍 Filtrar cards e criativos..."
-              value={boardFilter}
-              onChange={(e) => setBoardFilter(e.target.value)}
-            />
+            <div style={{position: 'relative', width: '100%'}}>
+              <Search size={16} color="var(--text-muted)" style={{position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)'}} />
+              <input
+                type="text"
+                className={styles.filterInput}
+                style={{paddingLeft: 34}}
+                placeholder="Filtrar cards e criativos..."
+                value={boardFilter}
+                onChange={(e) => setBoardFilter(e.target.value)}
+              />
+            </div>
           </div>
           <div className={styles.headerRight}>
             <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-              <span className={styles.addIcon}>+</span>
+              <span className={styles.addIcon}><Plus size={16} /></span>
               Nova Campanha
             </button>
           </div>

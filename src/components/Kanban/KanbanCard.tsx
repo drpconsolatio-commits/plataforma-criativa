@@ -5,6 +5,7 @@ import type { CampaignCard, Checklist, Label } from "./KanbanBoard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState, useRef, useEffect } from "react";
+import { Pin, MoreVertical, GripVertical, Tag, Edit2, Trash2, X, Check } from "lucide-react";
 
 const LABEL_COLORS = [
   "#7c5cfc", "#38bdf8", "#34d399", "#fbbf24", "#f472b6",
@@ -114,7 +115,7 @@ export default function KanbanCard({
       } ${card.pinned ? styles.pinned : ""}`}
     >
       {/* Pin indicator */}
-      {card.pinned && <div className={styles.pinIndicator}>📌</div>}
+      {card.pinned && <div className={styles.pinIndicator}><Pin size={14} fill="currentColor" /></div>}
 
       {/* Drag Handle + Menu */}
       <div className={styles.topRight}>
@@ -122,10 +123,10 @@ export default function KanbanCard({
           className={styles.menuBtn}
           onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
         >
-          ⋮
+          <MoreVertical size={16} />
         </button>
         <div className={styles.dragHandle} {...attributes} {...listeners}>
-          <span className={styles.gripIcon}>⠿</span>
+          <span className={styles.gripIcon}><GripVertical size={16} /></span>
         </div>
       </div>
 
@@ -136,25 +137,25 @@ export default function KanbanCard({
             className={styles.menuItem}
             onClick={() => { onTogglePin?.(card.id); setShowMenu(false); }}
           >
-            {card.pinned ? "📌 Desafixar" : "📌 Fixar no topo"}
+            <Pin size={14} /> {card.pinned ? "Desafixar" : "Fixar no topo"}
           </button>
           <button
             className={styles.menuItem}
             onClick={() => { setShowLabelInput(true); setShowMenu(false); }}
           >
-            🏷️ Adicionar etiqueta
+            <Tag size={14} /> Adicionar etiqueta
           </button>
           <button
             className={styles.menuItem}
             onClick={() => { setEditing(true); setShowMenu(false); }}
           >
-            ✏️ Renomear
+            <Edit2 size={14} /> Renomear
           </button>
           <button
             className={`${styles.menuItem} ${styles.menuDanger}`}
             onClick={() => { onDeleteCard?.(card.id); setShowMenu(false); }}
           >
-            🗑️ Excluir card
+            <Trash2 size={14} /> Excluir card
           </button>
         </div>
       )}
@@ -173,7 +174,7 @@ export default function KanbanCard({
                 className={styles.labelRemove}
                 onClick={(e) => { e.stopPropagation(); onRemoveLabel?.(card.id, lbl.id); }}
               >
-                ✕
+                <X size={10} />
               </button>
             </span>
           ))}
@@ -203,8 +204,8 @@ export default function KanbanCard({
             ))}
           </div>
           <div className={styles.labelActions}>
-            <button className={styles.labelConfirm} onClick={handleAddLabel}>✓</button>
-            <button className={styles.labelCancel} onClick={() => setShowLabelInput(false)}>✕</button>
+            <button className={styles.labelConfirm} onClick={handleAddLabel}><Check size={14} /></button>
+            <button className={styles.labelCancel} onClick={() => setShowLabelInput(false)}><X size={14} /></button>
           </div>
         </div>
       )}
@@ -251,7 +252,7 @@ export default function KanbanCard({
               }}
               title="Renomear campanha"
             >
-              ✏️
+              <Edit2 size={12} />
             </button>
           </div>
         )}
@@ -289,7 +290,7 @@ export default function KanbanCard({
               className={styles.checkInput}
             />
             <span className={styles.checkBox}>
-              {card.checklist[item.key] ? "✓" : ""}
+              {card.checklist[item.key] ? <Check size={14} /> : ""}
             </span>
             <span className={styles.checkLabel}>{item.label}</span>
           </label>

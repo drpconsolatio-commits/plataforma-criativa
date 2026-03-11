@@ -96,7 +96,7 @@ export default function CampaignDetailView({
 
   const handleAddCreative = () => {
     const newCreative: Creative = {
-      id: `cr-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: "Novo Criativo",
       hookType: "Visual",
       marketingAngle: "",

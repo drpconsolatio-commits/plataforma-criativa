@@ -4,6 +4,7 @@ import styles from "./KanbanColumn.module.css";
 import KanbanCard from "./KanbanCard";
 import type { Column, CampaignCard, Checklist, Label } from "./KanbanBoard";
 import { useDroppable } from "@dnd-kit/core";
+import { Sparkles } from "lucide-react";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -55,7 +56,7 @@ export default function KanbanColumn({
         <div className={styles.cardsList}>
           {column.cards.length === 0 ? (
             <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}>✦</span>
+              <span className={styles.emptyIcon}><Sparkles size={24} /></span>
               <p>Nenhum card ainda</p>
             </div>
           ) : (

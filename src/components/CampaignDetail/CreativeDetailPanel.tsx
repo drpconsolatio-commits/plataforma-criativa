@@ -1,9 +1,11 @@
 "use client";
 
 import styles from "./CreativeDetailPanel.module.css";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Mic, Square, Sparkles, Copy, Loader2, History, X, Check, Settings, Plus, Play } from "lucide-react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import { CHANNELS } from "../Kanban/KanbanBoard";
+import { useAudioRecorder } from "../../hooks/useAudioRecorder";
 
 interface Props {
   creative: Creative;
@@ -20,6 +22,7 @@ interface Props {
   onRemoveSubChannel: (channel: Channel, value: string) => void;
 }
 
+/* ---- Audio Hook Extracted Globally ---- */
 /* ---- Reusable Custom Select with Add/Remove ---- */
 function CustomSelect({
   label,
@@ -65,8 +68,8 @@ function CustomSelect({
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             autoFocus
           />
-          <button className={styles.addNewBtn} onClick={handleAdd}>✓</button>
-          <button className={styles.addNewBtn} onClick={() => setAdding(false)}>✕</button>
+          <button className={styles.addNewBtn} onClick={handleAdd}><Check size={14} /></button>
+          <button className={styles.addNewBtn} onClick={() => setAdding(false)}><X size={14} /></button>
         </div>
       ) : (
         <div className={styles.selectRow}>
@@ -84,14 +87,14 @@ function CustomSelect({
             onClick={() => setAdding(true)}
             title={`Adicionar novo ${label.toLowerCase()}`}
           >
-            +
+            <Plus size={16} />
           </button>
           <button
             className={styles.manageBtn}
             onClick={() => setManaging(!managing)}
             title="Gerenciar opções"
           >
-            ⚙
+            <Settings size={14} />
           </button>
         </div>
       )}
@@ -104,7 +107,7 @@ function CustomSelect({
                 className={styles.removeItemBtn}
                 onClick={() => onRemove(optionType, o)}
                 title="Remover"
-              >✕</button>
+              ><X size={10} /></button>
             </div>
           ))}
         </div>
@@ -145,8 +148,8 @@ function SubChannelSelect({
     <div className={styles.subChannelSection}>
       <div className={styles.subChannelHeader}>
         <span className={styles.subChannelLabel}>{label}</span>
-        <button className={styles.subAddBtn} onClick={() => setAdding(!adding)}>+</button>
-        <button className={styles.subManageBtn} onClick={() => setManaging(!managing)}>⚙</button>
+        <button className={styles.subAddBtn} onClick={() => setAdding(!adding)}><Plus size={12} /></button>
+        <button className={styles.subManageBtn} onClick={() => setManaging(!managing)}><Settings size={12} /></button>
       </div>
       <div className={styles.subChannelGrid}>
         {allSubs.map((sub) => (
@@ -173,8 +176,8 @@ function SubChannelSelect({
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             autoFocus
           />
-          <button className={styles.addNewBtn} onClick={handleAdd}>✓</button>
-          <button className={styles.addNewBtn} onClick={() => setAdding(false)}>✕</button>
+          <button className={styles.addNewBtn} onClick={handleAdd}><Check size={14} /></button>
+          <button className={styles.addNewBtn} onClick={() => setAdding(false)}><X size={14} /></button>
         </div>
       )}
       {managing && (
@@ -182,7 +185,7 @@ function SubChannelSelect({
           {allSubs.map((o) => (
             <div key={o} className={styles.manageItem}>
               <span>{o}</span>
-              <button className={styles.removeItemBtn} onClick={() => onRemoveSub(o)}>✕</button>
+              <button className={styles.removeItemBtn} onClick={() => onRemoveSub(o)}><X size={10}/></button>
             </div>
           ))}
         </div>
@@ -206,6 +209,64 @@ export default function CreativeDetailPanel({
   onAddSubChannel,
   onRemoveSubChannel,
 }: Props) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState("");
+  // Estado para saber qual campo está recebendo o áudio agora
+  const [activeVoiceField, setActiveVoiceField] = useState<"notes" | "recordingDirection" | "editingDirection" | null>(null);
+
+  const handleTranscription = (text: string) => {
+    if (!activeVoiceField) return;
+    const currentVal = creative[activeVoiceField] || "";
+    // Adicionar espaço antes se já houver texto
+    const newVal = currentVal ? `${currentVal} ${text}` : text;
+    onUpdate({ [activeVoiceField]: newVal });
+    setActiveVoiceField(null);
+  };
+
+  const { isRecording, isTranscribing, toggleRecording } = useAudioRecorder(handleTranscription);
+
+  const handleMicClick = (field: "notes" | "recordingDirection" | "editingDirection") => {
+    if (isRecording && activeVoiceField !== field) {
+      // Se tiver gravando em outro campo, ignore até terminar
+      return;
+    }
+    setActiveVoiceField(field);
+    toggleRecording();
+  };
+
+  const handleGenerateScript = async () => {
+    setIsGenerating(true);
+    setGeneratedScript("");
+    try {
+      const response = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(creative)
+      });
+      const data = await response.json();
+      if (data.script) {
+        setGeneratedScript(data.script);
+        // Salvar local no histórico de banco
+        const newHistory = [
+          { script: data.script, createdAt: Date.now() },
+          ...(creative.generatedScripts || [])
+        ];
+        onUpdate({ generatedScripts: newHistory });
+      } else {
+        alert("Erro: " + (data.error || "Erro desconhecido"));
+      }
+    } catch (err) {
+      alert("Falha de conexão com a IA.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyScript = (textToCopy: string) => {
+    navigator.clipboard.writeText(textToCopy);
+    alert("Roteiro copiado para a área de transferência!");
+  };
+
   const toggleChannel = (channel: Channel) => {
     const current = creative.channels;
     const updated = current.includes(channel)
@@ -235,7 +296,7 @@ export default function CreativeDetailPanel({
         {/* Header */}
         <div className={styles.panelHeader}>
           <h2 className={styles.panelTitle}>Detalhe do Criativo</h2>
-          <button className={styles.closeBtn} onClick={onClose}>✕</button>
+          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
         </div>
 
         <div className={styles.panelBody}>
@@ -311,7 +372,18 @@ export default function CreativeDetailPanel({
 
           {/* Notes */}
           <div className={styles.field}>
-            <label className={styles.label}>Anotações Gerais</label>
+            <div className={styles.labelRow}>
+              <label className={styles.label}>Anotações Gerais</label>
+              <button 
+                type="button" 
+                className={`${styles.micBtn} ${isRecording && activeVoiceField === 'notes' ? styles.micRecording : ''}`}
+                onClick={() => handleMicClick('notes')}
+                title="Gravar por voz"
+                disabled={isTranscribing && activeVoiceField === 'notes'}
+              >
+                {isRecording && activeVoiceField === 'notes' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'notes' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
+              </button>
+            </div>
             <textarea
               className={styles.textarea}
               placeholder="Anotações sobre o criativo…"
@@ -323,12 +395,89 @@ export default function CreativeDetailPanel({
 
           <div className={styles.divider} />
 
-          {/* Recording Direction */}
+          {/* Context Base (Long text) */}
           <div className={styles.field}>
             <label className={styles.label}>
-              Direcional de Gravação
-              <span className={styles.labelAi}>🤖 futuro: IA</span>
+              Material Base / Contexto Fonte (Cole informações do PDF, site, excel aqui)
             </label>
+            <textarea
+              className={styles.textarea}
+              placeholder="Cole textos brutos, detalhes técnicos, bulas, ou roteiros antigos para a IA usar como base..."
+              rows={5}
+              value={creative.materialBase || ""}
+              onChange={(e) => onUpdate({ materialBase: e.target.value })}
+            />
+          </div>
+          
+          <div className={styles.divider} />
+
+          {/* AI Script Generator */}
+          <div className={styles.field}>
+            <div className={styles.aiHeaderRow}>
+              <label className={styles.label}>
+                Roteiro Inteligente <Sparkles size={14} className={styles.labelAiBase} />
+              </label>
+              <button 
+                className={styles.generateBtn} 
+                onClick={handleGenerateScript}
+                disabled={isGenerating}
+              >
+                {isGenerating ? <><Loader2 size={16} className={styles.spinIcon}/> Pensando...</> : <><Sparkles size={16}/> Gerar Novo Roteiro</>}
+              </button>
+            </div>
+            
+            {/* Show just generated script if applies */}
+            {generatedScript && (
+              <div className={styles.scriptContainer}>
+                <div className={styles.scriptActions}>
+                  <button onClick={() => copyScript(generatedScript)} className={styles.copyBtn}><Copy size={12}/> Copiar Novo Roteiro</button>
+                </div>
+                <pre className={styles.scriptOutput}>{generatedScript}</pre>
+                <div className={styles.divider} style={{ margin: '16px 0' }} />
+              </div>
+            )}
+
+            {/* History of AI Scripts */}
+            {creative.generatedScripts && creative.generatedScripts.length > 0 && (
+               <div className={styles.historySection}>
+                 <span className={styles.historyTitle}><History size={14} style={{marginRight: 4, display: 'inline-block', verticalAlign: 'middle'}}/> Histórico do Agente ({creative.generatedScripts.length})</span>
+                 <div className={styles.historyList}>
+                    {creative.generatedScripts.map((item, idx) => (
+                      <details key={idx} className={styles.historyDetails}>
+                        <summary className={styles.historySummary}>
+                          Roteiro #{creative.generatedScripts!.length - idx} • {new Date(item.createdAt).toLocaleString()}
+                        </summary>
+                        <div className={styles.historyBody}>
+                           <div className={styles.scriptActions}>
+                             <button onClick={() => copyScript(item.script)} className={styles.copyBtn}><Copy size={12}/> Copiar</button>
+                           </div>
+                           <pre className={styles.scriptOutput}>{item.script}</pre>
+                        </div>
+                      </details>
+                    ))}
+                 </div>
+               </div>
+            )}
+          </div>
+
+          <div className={styles.divider} />
+
+          {/* Recording Direction */}
+          <div className={styles.field}>
+            <div className={styles.labelRow}>
+              <label className={styles.label}>
+                Direcional de Gravação
+              </label>
+              <button 
+                type="button" 
+                className={`${styles.micBtn} ${isRecording && activeVoiceField === 'recordingDirection' ? styles.micRecording : ''}`}
+                onClick={() => handleMicClick('recordingDirection')}
+                title="Gravar por voz"
+                disabled={isTranscribing && activeVoiceField === 'recordingDirection'}
+              >
+                {isRecording && activeVoiceField === 'recordingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'recordingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
+              </button>
+            </div>
             <textarea
               className={styles.textarea}
               placeholder="Direcionamentos para gravação…"
@@ -340,10 +489,20 @@ export default function CreativeDetailPanel({
 
           {/* Editing Direction */}
           <div className={styles.field}>
-            <label className={styles.label}>
-              Direcional de Edição
-              <span className={styles.labelAi}>🤖 futuro: IA</span>
-            </label>
+            <div className={styles.labelRow}>
+              <label className={styles.label}>
+                Direcional de Edição
+              </label>
+              <button 
+                type="button" 
+                className={`${styles.micBtn} ${isRecording && activeVoiceField === 'editingDirection' ? styles.micRecording : ''}`}
+                onClick={() => handleMicClick('editingDirection')}
+                title="Gravar por voz"
+                disabled={isTranscribing && activeVoiceField === 'editingDirection'}
+              >
+                 {isRecording && activeVoiceField === 'editingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'editingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
+              </button>
+            </div>
             <textarea
               className={styles.textarea}
               placeholder="Direcionamentos para edição…"
@@ -412,7 +571,7 @@ export default function CreativeDetailPanel({
           {/* Status toggle */}
           <div className={styles.field}>
             <label className={styles.label}>Status do Criativo</label>
-            <button
+              <button
               type="button"
               className={`${styles.statusToggle} ${
                 creative.status === "done" ? styles.statusDone : ""
@@ -421,7 +580,7 @@ export default function CreativeDetailPanel({
                 onUpdate({ status: creative.status === "done" ? "pending" : "done" })
               }
             >
-              {creative.status === "done" ? "✓ Concluído" : "○ Pendente"}
+              {creative.status === "done" ? <><Check size={14} style={{marginRight: 4}}/> Concluído</> : <><Play size={14} style={{marginRight: 4}}/> Pendente</>}
             </button>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import styles from "./ChannelColumn.module.css";
 import type { Column, Creative, Channel } from "./KanbanBoard";
 import { CHANNELS } from "./KanbanBoard";
+import { Megaphone, Leaf } from "lucide-react";
 
 interface Props {
   column: Column;
@@ -11,13 +12,13 @@ interface Props {
   onOpenChannel: (channelType: Channel) => void;
 }
 
-const CHANNEL_CONFIG: Record<Channel, { icon: string; description: string }> = {
+const CHANNEL_CONFIG: Record<Channel, { icon: React.ReactNode; description: string }> = {
   "Tráfego Pago": {
-    icon: "📢",
+    icon: <Megaphone size={20} />,
     description: "Facebook ADS, Google ADS, TikTok ADS",
   },
   "Orgânicos": {
-    icon: "🌱",
+    icon: <Leaf size={20} />,
     description: "Instagram, TikTok, YouTube",
   },
 };
