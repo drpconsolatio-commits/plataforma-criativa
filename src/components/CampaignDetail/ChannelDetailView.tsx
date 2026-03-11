@@ -208,16 +208,6 @@ export default function ChannelDetailView({
                       >
                         {creative.name}
                       </span>
-                      <button
-                        className={styles.editNameBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditingCreative(creative);
-                        }}
-                        title="Renomear criativo"
-                      >
-                        ✏️
-                      </button>
                     </div>
                   )}
                 </td>

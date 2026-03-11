@@ -291,24 +291,6 @@
   background: rgba(124, 92, 252, 0.2);
 }
 
-.editNameBtn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 2px;
-  font-size: 12px;
-  opacity: 0;
-  transition: all var(--transition-fast);
-}
-
-.nameWrapper:hover .editNameBtn {
-  opacity: 1;
-}
-
-.editNameBtn:hover {
-  transform: scale(1.1);
-}
 
 .nameInput {
   width: 100%;
