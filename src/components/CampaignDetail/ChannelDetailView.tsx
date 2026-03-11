@@ -4,6 +4,7 @@ import styles from "./ChannelDetailView.module.css";
 import { useState } from "react";
 import type { Creative, CreativeWithCampaign, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
+import { getBadgeStyle } from "../../utils/colors";
 
 interface Props {
   channelType: Channel;
@@ -68,6 +69,10 @@ export default function ChannelDetailView({
     setEditingCreativeId(null);
   };
 
+  const handleCopyName = (name: string) => {
+    navigator.clipboard.writeText(name);
+  };
+
   const sorted = [...creatives].sort((a, b) => b.createdAt - a.createdAt);
 
   const filtered = sorted.filter((cr) => {
@@ -82,16 +87,6 @@ export default function ChannelDetailView({
       cr.subChannels.some((s) => s.toLowerCase().includes(q))
     );
   });
-
-  const getObjectiveClass = (obj: string) => {
-    const o = obj.toLowerCase();
-    if (o.includes("captação")) return styles.objCaptacao;
-    if (o.includes("conversão")) return styles.objConversao;
-    if (o.includes("app")) return styles.objApp;
-    if (o.includes("perpétuo")) return styles.objPerpetuo;
-    if (o.includes("google")) return styles.objGoogle;
-    return "";
-  };
 
   return (
     <div className={styles.container}>
@@ -195,11 +190,16 @@ export default function ChannelDetailView({
                   ) : (
                     <div className={styles.nameWrapper}>
                       <span
+                        className={styles.nameText}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyName(creative.name);
+                        }}
                         onDoubleClick={(e) => {
                           e.stopPropagation();
                           startEditingCreative(creative);
                         }}
-                        title="Duplo clique para renomear"
+                        title="Clique p/ copiar • Duplo clique p/ editar"
                       >
                         {creative.name}
                       </span>
@@ -219,7 +219,7 @@ export default function ChannelDetailView({
                 {channelType === "Tráfego Pago" ? (
                   <td>
                     {creative.objective ? (
-                      <span className={`${styles.pillObjective} ${getObjectiveClass(creative.objective)}`}>
+                      <span className={styles.pillObjective} style={getBadgeStyle(creative.objective)}>
                         {creative.objective}
                       </span>
                     ) : (
@@ -229,13 +229,13 @@ export default function ChannelDetailView({
                 ) : (
                   <>
                     <td>
-                      <span className={styles.pill}>{creative.hookType}</span>
+                      <span className={styles.pill} style={getBadgeStyle(creative.hookType)}>{creative.hookType}</span>
                     </td>
                     <td>
-                      <span className={styles.pillFormat}>{creative.format}</span>
+                      <span className={styles.pill} style={getBadgeStyle(creative.format)}>{creative.format}</span>
                     </td>
                     <td>
-                      <span className={styles.pillCta}>{creative.ctaType}</span>
+                      <span className={styles.pill} style={getBadgeStyle(creative.ctaType)}>{creative.ctaType}</span>
                     </td>
                   </>
                 )}
@@ -243,7 +243,7 @@ export default function ChannelDetailView({
                   {creative.subChannels.length > 0 ? (
                     <div className={styles.subTags}>
                       {creative.subChannels.map((s) => (
-                        <span key={s} className={styles.subTag}>{s}</span>
+                        <span key={s} className={styles.subTag} style={getBadgeStyle(s)}>{s}</span>
                       ))}
                     </div>
                   ) : (

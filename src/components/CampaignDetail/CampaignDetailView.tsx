@@ -4,6 +4,7 @@ import styles from "./CampaignDetailView.module.css";
 import { useState, useEffect } from "react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
+import { getBadgeStyle } from "../../utils/colors";
 
 interface Props {
   card: { id: string; title: string; date: string; creatives: Creative[] };
@@ -225,9 +226,9 @@ export default function CampaignDetailView({
               <th className={styles.thStatus}></th>
               <th className={styles.thName}>Nome do Criativo</th>
               <th>Hook</th>
-              <th>Ângulo de Marketing</th>
               <th>Formato</th>
               <th>CTA</th>
+              <th>Ângulo de Marketing</th>
               <th>Canais</th>
             </tr>
           </thead>
@@ -284,16 +285,28 @@ export default function CampaignDetailView({
                   )}
                 </td>
                 <td>
-                  <span className={styles.pill}>{creative.hookType}</span>
+                  <span className={styles.pill} style={getBadgeStyle(creative.hookType)}>
+                    {creative.hookType}
+                  </span>
+                </td>
+                <td>
+                  <span className={styles.pill} style={getBadgeStyle(creative.format)}>
+                    {creative.format}
+                  </span>
+                </td>
+                <td>
+                  <span className={styles.pill} style={getBadgeStyle(creative.ctaType)}>
+                    {creative.ctaType}
+                  </span>
                 </td>
                 <td className={styles.tdAngle}>
-                  {creative.marketingAngle || <span className={styles.empty}>—</span>}
-                </td>
-                <td>
-                  <span className={styles.pillFormat}>{creative.format}</span>
-                </td>
-                <td>
-                  <span className={styles.pillCta}>{creative.ctaType}</span>
+                  {creative.marketingAngle ? (
+                    <span className={styles.pill} style={getBadgeStyle(creative.marketingAngle)}>
+                      {creative.marketingAngle}
+                    </span>
+                  ) : (
+                    <span className={styles.empty}>—</span>
+                  )}
                 </td>
                 <td className={styles.tdChannels}>
                   {creative.channels.length > 0 ? (

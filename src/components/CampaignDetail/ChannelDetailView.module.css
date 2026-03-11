@@ -273,6 +273,24 @@
   gap: 8px;
 }
 
+.nameText {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  display: inline-block;
+}
+
+.nameText:hover {
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent-primary);
+}
+
+.nameText:active {
+  transform: scale(0.98);
+  background: rgba(124, 92, 252, 0.2);
+}
+
 .editNameBtn {
   background: transparent;
   border: none;
