@@ -112,12 +112,12 @@ export default function ChannelDetailView({
     // Busca global
     const q = filter.toLowerCase();
     const matchesSearch = !filter || (
-      cr.name.toLowerCase().includes(q) ||
-      cr.campaignTitle.toLowerCase().includes(q) ||
-      cr.hookType.toLowerCase().includes(q) ||
-      cr.format.toLowerCase().includes(q) ||
-      cr.ctaType.toLowerCase().includes(q) ||
-      cr.subChannels.some((s) => s.toLowerCase().includes(q))
+      (cr.name?.toLowerCase().includes(q) || false) ||
+      (cr.campaignTitle?.toLowerCase().includes(q) || false) ||
+      (cr.hookType?.toLowerCase().includes(q) || false) ||
+      (cr.format?.toLowerCase().includes(q) || false) ||
+      (cr.ctaType?.toLowerCase().includes(q) || false) ||
+      (cr.subChannels?.some((s) => s.toLowerCase().includes(q)) || false)
     );
 
     if (!matchesSearch) return false;

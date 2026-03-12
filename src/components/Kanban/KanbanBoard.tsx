@@ -728,6 +728,7 @@ export default function KanbanBoard() {
 
   // --- Delete card ---
   const deleteCard = async (cardId: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir esta campanha e todos os seus criativos?")) return;
     supabase.from('campaigns').delete().eq('id', cardId).then();
     setColumns((prev) => {
       const newState = prev.map((col) => ({
@@ -882,6 +883,25 @@ export default function KanbanBoard() {
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        if (canUndo) {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')) {
+        if (canRedo) {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo, canUndo, canRedo]);
+
   /* ---- CAMPAIGN DETAIL VIEW ---- */
   if (activeView.type === "campaign") {
     return (
@@ -962,24 +982,6 @@ export default function KanbanBoard() {
     orderedColumns.push("canais");
   }
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
-        if (canUndo) {
-          e.preventDefault();
-          handleUndo();
-        }
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')) {
-        if (canRedo) {
-          e.preventDefault();
-          handleRedo();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo, canUndo, canRedo]);
 
   return (
     <DndContext

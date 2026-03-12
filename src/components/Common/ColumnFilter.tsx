@@ -87,12 +87,12 @@ export default function ColumnFilter({
             {filteredOptions.length === 0 && (
               <div className={styles.noResults}>Nenhum valor encontrado</div>
             )}
-            {filteredOptions.map((option) => {
+            {filteredOptions.map((option, idx) => {
               const displayOption = option || "(Vazio)";
               const isSelected = selectedOptions.includes(option);
               return (
                 <div 
-                  key={option} 
+                  key={`${option}-${idx}`} 
                   className={`${styles.optionItem} ${isSelected ? styles.optionSelected : ""}`}
                   onClick={() => toggleOption(option)}
                 >
