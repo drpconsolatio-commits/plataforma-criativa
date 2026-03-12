@@ -132,6 +132,45 @@ export default function CampaignHistoryView() {
     fetchData();
   };
 
+  const handleMoveCreative = async (creativeId: string, targetCampaignId: string) => {
+    await supabase.from('creatives').update({ campaign_id: targetCampaignId }).eq('id', creativeId);
+    if (selectedCampaign) {
+      // Se moveu para fora da campanha atual, recarregar
+      fetchData();
+    }
+  };
+
+  const handleCopyCreative = async (creativeId: string, targetCampaignId: string) => {
+    // Achar o original para duplicar
+    const original = campaigns.flatMap(c => c.creatives).find(cr => cr.id === creativeId);
+    if (!original) return;
+
+    await supabase.from('creatives').insert({
+      id: crypto.randomUUID(),
+      campaign_id: targetCampaignId,
+      name: `${original.name} (cópia)`,
+      hook_type: original.hookType,
+      marketing_angle: original.marketingAngle,
+      format: original.format,
+      cta_type: original.ctaType,
+      reference: original.reference,
+      notes: original.notes,
+      recording_direction: original.recordingDirection,
+      editing_direction: original.editingDirection,
+      channels: original.channels,
+      sub_channels: original.subChannels,
+      drive_link: original.driveLink,
+      uploaded_to_channels: original.uploadedToChannels,
+      status: original.status,
+      created_at: new Date().toISOString(),
+      material_base: original.materialBase,
+      objective: original.objective,
+      content_type: original.contentType,
+      design_direction: original.designDirection
+    });
+    fetchData();
+  };
+
   if (selectedCampaign) {
     return (
       <div className={styles.container}>
@@ -143,6 +182,9 @@ export default function CampaignHistoryView() {
           onAddCreative={handleAddCreative}
           onDeleteCreative={handleDeleteCreative}
           onRenameCampaign={handleRenameCampaign}
+          onMoveCreative={handleMoveCreative}
+          onCopyCreative={handleCopyCreative}
+          allCampaigns={campaigns.map(c => ({ id: c.id, title: c.title, date: c.date }))}
           hookTypes={customHookTypes}
           formats={customFormats}
           ctaTypes={customCtaTypes}

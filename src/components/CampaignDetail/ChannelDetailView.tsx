@@ -5,8 +5,10 @@ import { useState } from "react";
 import type { Creative, CreativeWithCampaign, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
 import { getBadgeStyle } from "../../utils/colors";
-import { ArrowLeft, Check, Megaphone, Leaf, FolderOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Megaphone, Leaf, FolderOpen, Trash2, Filter, Copy, ArrowRightLeft } from "lucide-react";
 import ColumnFilter from "../Common/ColumnFilter";
+import ContextMenu from "../Common/ContextMenu";
+import MoveCopyModal from "../Modal/MoveCopyModal";
 
 interface Props {
   channelType: Channel;
@@ -24,6 +26,9 @@ interface Props {
   onAddSubChannel: (value: string) => void;
   onRemoveSubChannel: (value: string) => void;
   onDeleteCreative: (creativeId: string) => void;
+  onMoveCreative: (creativeId: string, targetCampaignId: string) => void;
+  onCopyCreative: (creativeId: string, targetCampaignId: string) => void;
+  allCampaigns: { id: string; title: string; date: string }[];
 }
 
 const CHANNEL_META: Record<Channel, { icon: React.ReactNode; description: string }> = {
@@ -53,10 +58,17 @@ export default function ChannelDetailView({
   onRemoveSubChannel,
   objectives,
   onDeleteCreative,
+  onMoveCreative,
+  onCopyCreative,
+  allCampaigns,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<CreativeWithCampaign | null>(null);
   const [filter, setFilter] = useState("");
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "date-desc" | "date-asc">("date-desc");
+
+  // Menu de Contexto
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, creative: CreativeWithCampaign } | null>(null);
+  const [moveCopyModal, setMoveCopyModal] = useState<{ type: "move" | "copy", creative: CreativeWithCampaign } | null>(null);
   const meta = CHANNEL_META[channelType];
 
   // Edição Nome Criativo
@@ -279,8 +291,12 @@ export default function ChannelDetailView({
                 key={creative.id}
                 className={`${styles.row} ${
                   selectedCreative?.id === creative.id ? styles.rowActive : ""
-                }`}
+                } ${creative.status === "done" ? styles.rowDone : ""}`}
                 onClick={() => setSelectedCreative(creative)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setContextMenu({ x: e.clientX, y: e.clientY, creative });
+                }}
               >
                 <td className={styles.tdUpload}>
                   <button
@@ -394,21 +410,99 @@ export default function ChannelDetailView({
                   )}
                 </td>
                 <td className={styles.tdActions}>
-                  <button 
-                    className={styles.deleteBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteCreative(creative.id);
-                    }}
-                    title="Excluir Criativo"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {contextMenu && (
+          <ContextMenu 
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            actions={[
+              { 
+                label: "Mover para...", 
+                icon: <ArrowRightLeft size={14} />, 
+                onClick: () => setMoveCopyModal({ type: "move", creative: contextMenu.creative }) 
+              },
+              { 
+                label: "Copiar como modelo para...", 
+                icon: <Copy size={14} />, 
+                onClick: () => setMoveCopyModal({ type: "copy", creative: contextMenu.creative }) 
+              },
+              { 
+                label: "Excluir Criativo", 
+                icon: <Trash2 size={14} />, 
+                danger: true,
+                divider: true,
+                onClick: () => onDeleteCreative(contextMenu.creative.id)
+              }
+            ]}
+          />
+        )}
+
+        {moveCopyModal && (
+          <MoveCopyModal 
+            type={moveCopyModal.type}
+            creativeName={moveCopyModal.creative.name}
+            campaigns={allCampaigns}
+            onClose={() => setMoveCopyModal(null)}
+            onConfirm={(targetId) => {
+              if (moveCopyModal.type === "move") {
+                onMoveCreative(moveCopyModal.creative.id, targetId);
+              } else {
+                onCopyCreative(moveCopyModal.creative.id, targetId);
+              }
+              setMoveCopyModal(null);
+            }}
+          />
+        )}
+
+        {contextMenu && (
+          <ContextMenu 
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            actions={[
+              { 
+                label: "Mover para...", 
+                icon: <ArrowRightLeft size={14} />, 
+                onClick: () => setMoveCopyModal({ type: "move", creative: contextMenu.creative }) 
+              },
+              { 
+                label: "Copiar como modelo para...", 
+                icon: <Copy size={14} />, 
+                onClick: () => setMoveCopyModal({ type: "copy", creative: contextMenu.creative }) 
+              },
+              { 
+                label: "Excluir Criativo", 
+                icon: <Trash2 size={14} />, 
+                danger: true,
+                divider: true,
+                onClick: () => onDeleteCreative(contextMenu.creative.id)
+              }
+            ]}
+          />
+        )}
+
+        {moveCopyModal && (
+          <MoveCopyModal 
+            type={moveCopyModal.type}
+            creativeName={moveCopyModal.creative.name}
+            campaigns={allCampaigns}
+            onClose={() => setMoveCopyModal(null)}
+            onConfirm={(targetId) => {
+              if (moveCopyModal.type === "move") {
+                onMoveCreative(moveCopyModal.creative.id, targetId);
+              } else {
+                onCopyCreative(moveCopyModal.creative.id, targetId);
+              }
+              setMoveCopyModal(null);
+            }}
+          />
+        )}
 
         {creatives.length === 0 && (
           <div className={styles.emptyState}>

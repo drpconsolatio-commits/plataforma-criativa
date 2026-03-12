@@ -603,6 +603,133 @@ export default function KanbanBoard() {
     }
   };
 
+  // --- Move Creative ---
+  const moveCreative = async (creativeId: string, fromCampaignId: string, toCampaignId: string) => {
+    // 1. Atualizar Supabase
+    const { error } = await supabase
+      .from('creatives')
+      .update({ campaign_id: toCampaignId })
+      .eq('id', creativeId);
+    
+    if (error) {
+      console.error("Erro ao mover criativo:", error);
+      return;
+    }
+
+    // 2. Atualizar estado local
+    setColumns((prev) => {
+      const newState = [...prev];
+      let creativeToMove: Creative | undefined;
+
+      // Remover da origem
+      newState.forEach((col, cIdx) => {
+        const campIdx = col.cards.findIndex(c => c.id === fromCampaignId);
+        if (campIdx !== -1) {
+          const creativeIdx = col.cards[campIdx].creatives.findIndex(cr => cr.id === creativeId);
+          if (creativeIdx !== -1) {
+            creativeToMove = col.cards[campIdx].creatives[creativeIdx];
+            const newCreatives = [...col.cards[campIdx].creatives];
+            newCreatives.splice(creativeIdx, 1);
+            const newCards = [...col.cards];
+            newCards[campIdx] = { ...newCards[campIdx], creatives: newCreatives };
+            newState[cIdx] = { ...col, cards: newCards };
+          }
+        }
+      });
+
+      // Adicionar ao destino
+      if (creativeToMove) {
+        newState.forEach((col, cIdx) => {
+          const campIdx = col.cards.findIndex(c => c.id === toCampaignId);
+          if (campIdx !== -1) {
+            const newCards = [...col.cards];
+            newCards[campIdx] = { 
+              ...newCards[campIdx], 
+              creatives: [...newCards[campIdx].creatives, creativeToMove!] 
+            };
+            newState[cIdx] = { ...col, cards: newCards };
+          }
+        });
+      }
+
+      commit(newState);
+      return newState;
+    });
+  };
+
+  // --- Copy Creative ---
+  const copyCreative = async (creativeId: string, fromCampaignId: string, toCampaignId: string) => {
+    // 1. Achar o original para duplicar
+    let original: Creative | undefined;
+    columns.forEach(col => {
+      const camp = col.cards.find(c => c.id === fromCampaignId);
+      if (camp) {
+        const found = camp.creatives.find(cr => cr.id === creativeId);
+        if (found) original = found;
+      }
+    });
+
+    if (!original) return;
+
+    // 2. Criar cópia
+    const copy: Creative = {
+      ...original,
+      id: crypto.randomUUID(),
+      name: `${original.name} (cópia)`,
+      createdAt: Date.now()
+    };
+
+    // 3. Salvar no Supabase
+    const { error } = await supabase
+      .from('creatives')
+      .insert({
+        id: copy.id,
+        campaign_id: toCampaignId,
+        name: copy.name,
+        hook_type: copy.hookType,
+        marketing_angle: copy.marketingAngle,
+        format: copy.format,
+        cta_type: copy.ctaType,
+        reference: copy.reference,
+        notes: copy.notes,
+        recording_direction: copy.recordingDirection,
+        editing_direction: copy.editingDirection,
+        channels: copy.channels,
+        sub_channels: copy.subChannels,
+        drive_link: copy.driveLink,
+        uploaded_to_channels: copy.uploadedToChannels,
+        status: copy.status,
+        created_at: new Date(copy.createdAt).toISOString(),
+        material_base: copy.materialBase,
+        objective: copy.objective,
+        content_type: copy.contentType,
+        design_direction: copy.designDirection
+      });
+
+    if (error) {
+      console.error("Erro ao copiar criativo:", error);
+      return;
+    }
+
+    // 4. Atualizar estado local
+    setColumns((prev) => {
+      const newState = [...prev];
+      newState.forEach((col, cIdx) => {
+        const campIdx = col.cards.findIndex(c => c.id === toCampaignId);
+        if (campIdx !== -1) {
+          const newCards = [...col.cards];
+          newCards[campIdx] = { 
+            ...newCards[campIdx], 
+            creatives: [...newCards[campIdx].creatives, copy] 
+          };
+          newState[cIdx] = { ...col, cards: newCards };
+        }
+      });
+      commit(newState);
+      return newState;
+    });
+  };
+
   // --- Remove custom option ---
   const removeCustomOption = (type: "hook" | "format" | "cta" | "objective", value: string) => {
     if (type === "hook") {
@@ -919,6 +1046,13 @@ export default function KanbanBoard() {
         onDeleteCreative={(creativeId: string) =>
           deleteCreative(activeView.card.id, creativeId)
         }
+        onMoveCreative={(creativeId: string, targetId: string) => 
+          moveCreative(creativeId, activeView.card.id, targetId)
+        }
+        onCopyCreative={(creativeId: string, targetId: string) =>
+          copyCreative(creativeId, activeView.card.id, targetId)
+        }
+        allCampaigns={columns.flatMap(c => c.cards).map(c => ({ id: c.id, title: c.title, date: c.date }))}
         hookTypes={customHookTypes}
         formats={customFormats}
         ctaTypes={customCtaTypes}
@@ -961,6 +1095,15 @@ export default function KanbanBoard() {
           const campaignId = findCreativeCampaign(creativeId);
           if (campaignId) deleteCreative(campaignId, creativeId);
         }}
+        onMoveCreative={(creativeId: string, targetId: string) => {
+          const campaignId = findCreativeCampaign(creativeId);
+          if (campaignId) moveCreative(creativeId, campaignId, targetId);
+        }}
+        onCopyCreative={(creativeId: string, targetId: string) => {
+          const campaignId = findCreativeCampaign(creativeId);
+          if (campaignId) copyCreative(creativeId, campaignId, targetId);
+        }}
+        allCampaigns={columns.flatMap(c => c.cards).map(c => ({ id: c.id, title: c.title, date: c.date }))}
       />
     );
   }
