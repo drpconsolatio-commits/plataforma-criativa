@@ -4,10 +4,11 @@ import styles from "./Sidebar.module.css";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Palette, Bot, BarChart3, Settings, Sparkles, ChevronLeft } from "lucide-react";
+import { Palette, Bot, BarChart3, Settings, Sparkles, ChevronLeft, Archive } from "lucide-react";
 
 const navItems = [
   { icon: <Palette size={20} />, label: "Criações", href: "/" },
+  { icon: <Archive size={20} />, label: "Histórico", href: "/historico" },
   { icon: <Bot size={20} />, label: "Agentes IA", href: "/agentes" },
   { icon: <BarChart3 size={20} />, label: "Relatórios", href: "#reports" },
   { icon: <Settings size={20} />, label: "Configurações", href: "#settings" },

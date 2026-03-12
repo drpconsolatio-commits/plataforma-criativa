@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
 import { getBadgeStyle } from "../../utils/colors";
-import { ArrowLeft, Check, Sparkles, Pencil } from "lucide-react";
+import { ArrowLeft, Check, Sparkles, Pencil, Trash2, Filter } from "lucide-react";
+import ColumnFilter from "../Common/ColumnFilter";
 
 interface Props {
   card: { id: string; title: string; date: string; creatives: Creative[] };
@@ -24,6 +25,7 @@ interface Props {
   onAddSubChannel: (channel: Channel, value: string) => void;
   onRemoveSubChannel: (channel: Channel, value: string) => void;
   onRenameCampaign: (cardId: string, newTitle: string) => void;
+  onDeleteCreative: (creativeId: string) => void;
 }
 
 export default function CampaignDetailView({
@@ -43,10 +45,11 @@ export default function CampaignDetailView({
   onRemoveSubChannel,
   onRenameCampaign,
   objectives,
+  onDeleteCreative,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
   const [filter, setFilter] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "date" | "manual">("manual");
+  const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "date-desc" | "date-asc">("date-desc");
   
   // Edição Titulo Campanha
   const [editingCampaignTitle, setEditingCampaignTitle] = useState(false);
@@ -93,8 +96,10 @@ export default function CampaignDetailView({
   const doneCount = card.creatives.filter((c) => c.status === "done").length;
 
   const sortedCreatives = [...card.creatives].sort((a, b) => {
-    if (sortBy === "name") return a.name.localeCompare(b.name);
-    if (sortBy === "date") return b.createdAt - a.createdAt;
+    if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+    if (sortBy === "name-desc") return b.name.localeCompare(a.name);
+    if (sortBy === "date-desc") return b.createdAt - a.createdAt;
+    if (sortBy === "date-asc") return a.createdAt - b.createdAt;
     return 0;
   });
 
@@ -110,14 +115,42 @@ export default function CampaignDetailView({
     );
   });
 
+  // Filtros de Coluna
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
+
+  const toggleColumnFilter = (column: string, selected: string[]) => {
+    setColumnFilters(prev => ({ ...prev, [column]: selected }));
+  };
+
+  const getUniqueValues = (key: keyof Creative) => {
+    const vals = card.creatives.map(cr => {
+        const val = cr[key];
+        return val ? String(val) : '';
+    });
+    return Array.from(new Set(vals)).sort();
+  };
+
+  const finalFilteredCreatives = filteredCreatives.filter(cr => {
+    // Só aplica filtros de coluna se estiver em 'resultados'
+    if (columnId !== 'resultados') return true;
+
+    for (const [col, selected] of Object.entries(columnFilters)) {
+      if (selected.length === 0) continue;
+      
+      const val = String(cr[col as keyof Creative] || '');
+      if (!selected.includes(val)) return false;
+    }
+    return true;
+  });
+
   const handleAddCreative = () => {
     const newCreative: Creative = {
       id: crypto.randomUUID(),
-      name: "Novo Criativo",
-      hookType: "Visual",
+      name: "",
+      hookType: "",
       marketingAngle: "",
-      format: "Talkinghead",
-      ctaType: "Suave",
+      format: "",
+      ctaType: "",
       reference: "",
       notes: "",
       recordingDirection: "",
@@ -128,6 +161,8 @@ export default function CampaignDetailView({
       uploadedToChannels: false,
       status: "pending",
       createdAt: Date.now(),
+      objective: "",
+      contentType: undefined,
     };
     onAddCreative(newCreative);
   };
@@ -206,15 +241,16 @@ export default function CampaignDetailView({
             value={sortBy} 
             onChange={(e) => setSortBy(e.target.value as any)}
           >
-            <option value="manual">Manual</option>
-            <option value="name">Nome (A-Z)</option>
-            <option value="date">Data (Mais recentes)</option>
+            <option value="name-asc">A-Z</option>
+            <option value="name-desc">Z-A</option>
+            <option value="date-desc">Mais recente</option>
+            <option value="date-asc">Mais antigo</option>
           </select>
         </div>
 
         {filter && (
           <span className={styles.filterCount}>
-            {filteredCreatives.length} de {card.creatives.length}
+            {finalFilteredCreatives.length} de {card.creatives.length}
           </span>
         )}
       </div>
@@ -224,17 +260,72 @@ export default function CampaignDetailView({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thStatus}></th>
+              <th className={styles.thContent}>
+                Conteúdo
+                {columnId === 'resultados' && (
+                  <ColumnFilter 
+                    label="Conteúdo"
+                    options={getUniqueValues('contentType')}
+                    selectedOptions={columnFilters['contentType'] || []}
+                    onFilterChange={(s) => toggleColumnFilter('contentType', s)}
+                    onClear={() => toggleColumnFilter('contentType', [])}
+                  />
+                )}
+              </th>
               <th className={styles.thName}>Nome do Criativo</th>
-              <th>Hook</th>
-              <th>Formato</th>
-              <th>CTA</th>
-              <th>Ângulo de Marketing</th>
+              <th>
+                Hook
+                {columnId === 'resultados' && (
+                  <ColumnFilter 
+                    label="Hook"
+                    options={getUniqueValues('hookType')}
+                    selectedOptions={columnFilters['hookType'] || []}
+                    onFilterChange={(s) => toggleColumnFilter('hookType', s)}
+                    onClear={() => toggleColumnFilter('hookType', [])}
+                  />
+                )}
+              </th>
+              <th>
+                Formato
+                {columnId === 'resultados' && (
+                  <ColumnFilter 
+                    label="Formato"
+                    options={getUniqueValues('format')}
+                    selectedOptions={columnFilters['format'] || []}
+                    onFilterChange={(s) => toggleColumnFilter('format', s)}
+                    onClear={() => toggleColumnFilter('format', [])}
+                  />
+                )}
+              </th>
+              <th>
+                CTA
+                {columnId === 'resultados' && (
+                  <ColumnFilter 
+                    label="CTA"
+                    options={getUniqueValues('ctaType')}
+                    selectedOptions={columnFilters['ctaType'] || []}
+                    onFilterChange={(s) => toggleColumnFilter('ctaType', s)}
+                    onClear={() => toggleColumnFilter('ctaType', [])}
+                  />
+                )}
+              </th>
+              <th>
+                Ângulo
+                {columnId === 'resultados' && (
+                  <ColumnFilter 
+                    label="Ângulo"
+                    options={getUniqueValues('marketingAngle')}
+                    selectedOptions={columnFilters['marketingAngle'] || []}
+                    onFilterChange={(s) => toggleColumnFilter('marketingAngle', s)}
+                    onClear={() => toggleColumnFilter('marketingAngle', [])}
+                  />
+                )}
+              </th>
               <th>Canais</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCreatives.map((creative) => (
+            {finalFilteredCreatives.map((creative) => (
               <tr
                 key={creative.id}
                 className={`${styles.row} ${
@@ -242,13 +333,9 @@ export default function CampaignDetailView({
                 } ${creative.status === "done" ? styles.rowDone : ""}`}
                 onClick={() => setSelectedCreative(creative)}
               >
-                <td className={styles.tdStatus}>
-                  <span
-                    className={`${styles.statusDot} ${
-                      creative.status === "done" ? styles.statusDone : ""
-                    }`}
-                  >
-                    {creative.status === "done" ? <Check size={14} /> : ""}
+                <td className={styles.tdContent}>
+                  <span className={`${styles.contentPill} ${creative.contentType === 'Estático' ? styles.pillStatic : styles.pillVideo}`}>
+                    {creative.contentType || 'Vídeo'}
                   </span>
                 </td>
                 <td className={styles.tdName}>
@@ -302,7 +389,7 @@ export default function CampaignDetailView({
                 </td>
                 <td className={styles.tdAngle}>
                   {creative.marketingAngle ? (
-                    <span className={styles.pill} style={getBadgeStyle(creative.marketingAngle)}>
+                    <span className={styles.pill} style={getBadgeStyle(creative.marketingAngle, 'neutral')}>
                       {creative.marketingAngle}
                     </span>
                   ) : (
@@ -324,6 +411,18 @@ export default function CampaignDetailView({
                   ) : (
                     <span className={styles.empty}>—</span>
                   )}
+                </td>
+                <td className={styles.tdActions}>
+                  <button 
+                    className={styles.deleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCreative(creative.id);
+                    }}
+                    title="Excluir Criativo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -360,6 +459,10 @@ export default function CampaignDetailView({
           organicoSubs={organicoSubs}
           onAddSubChannel={onAddSubChannel}
           onRemoveSubChannel={onRemoveSubChannel}
+          onDelete={() => {
+            onDeleteCreative(selectedCreative.id);
+            setSelectedCreative(null);
+          }}
         />
       )}
     </div>

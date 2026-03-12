@@ -5,7 +5,8 @@ import { useState } from "react";
 import type { Creative, CreativeWithCampaign, Channel } from "../Kanban/KanbanBoard";
 import CreativeDetailPanel from "./CreativeDetailPanel";
 import { getBadgeStyle } from "../../utils/colors";
-import { ArrowLeft, Check, Megaphone, Leaf, FolderOpen } from "lucide-react";
+import { ArrowLeft, Check, Megaphone, Leaf, FolderOpen, Trash2 } from "lucide-react";
+import ColumnFilter from "../Common/ColumnFilter";
 
 interface Props {
   channelType: Channel;
@@ -19,8 +20,10 @@ interface Props {
   onRemoveCustomOption: (type: "hook" | "format" | "cta" | "objective", value: string) => void;
   objectives: string[];
   trafegoSubs: string[];
+  organicoSubs: string[];
   onAddSubChannel: (value: string) => void;
   onRemoveSubChannel: (value: string) => void;
+  onDeleteCreative: (creativeId: string) => void;
 }
 
 const CHANNEL_META: Record<Channel, { icon: React.ReactNode; description: string }> = {
@@ -45,17 +48,40 @@ export default function ChannelDetailView({
   onAddCustomOption,
   onRemoveCustomOption,
   trafegoSubs,
+  organicoSubs,
   onAddSubChannel,
   onRemoveSubChannel,
   objectives,
+  onDeleteCreative,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<CreativeWithCampaign | null>(null);
   const [filter, setFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "date-desc" | "date-asc">("date-desc");
   const meta = CHANNEL_META[channelType];
 
   // Edição Nome Criativo
   const [editingCreativeId, setEditingCreativeId] = useState<string | null>(null);
   const [creativeNameVal, setCreativeNameVal] = useState("");
+
+  // Filtros de Coluna
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
+
+  const toggleColumnFilter = (column: string, selected: string[]) => {
+    setColumnFilters(prev => ({ ...prev, [column]: selected }));
+  };
+
+  const getUniqueValues = (key: keyof CreativeWithCampaign | 'campaignTitle') => {
+    const vals = creatives.map(cr => {
+        const val = cr[key as keyof CreativeWithCampaign];
+        return val ? String(val) : '';
+    });
+    return Array.from(new Set(vals)).sort();
+  };
+  
+  const getSubChannelValues = () => {
+    const all = creatives.flatMap(cr => cr.subChannels);
+    return Array.from(new Set(all)).sort();
+  };
 
   const startEditingCreative = (cr: CreativeWithCampaign) => {
     setEditingCreativeId(cr.id);
@@ -74,12 +100,18 @@ export default function ChannelDetailView({
     navigator.clipboard.writeText(name);
   };
 
-  const sorted = [...creatives].sort((a, b) => b.createdAt - a.createdAt);
+  const sorted = [...creatives].sort((a, b) => {
+    if (sortBy === "name-asc") return a.name.localeCompare(b.name);
+    if (sortBy === "name-desc") return b.name.localeCompare(a.name);
+    if (sortBy === "date-desc") return b.createdAt - a.createdAt;
+    if (sortBy === "date-asc") return a.createdAt - b.createdAt;
+    return 0;
+  });
 
   const filtered = sorted.filter((cr) => {
-    if (!filter) return true;
+    // Busca global
     const q = filter.toLowerCase();
-    return (
+    const matchesSearch = !filter || (
       cr.name.toLowerCase().includes(q) ||
       cr.campaignTitle.toLowerCase().includes(q) ||
       cr.hookType.toLowerCase().includes(q) ||
@@ -87,6 +119,22 @@ export default function ChannelDetailView({
       cr.ctaType.toLowerCase().includes(q) ||
       cr.subChannels.some((s) => s.toLowerCase().includes(q))
     );
+
+    if (!matchesSearch) return false;
+
+    // Filtros de coluna
+    for (const [col, selected] of Object.entries(columnFilters)) {
+      if (selected.length === 0) continue;
+      
+      if (col === 'subChannels') {
+        if (!cr.subChannels.some(s => selected.includes(s))) return false;
+      } else {
+        const val = String(cr[col as keyof CreativeWithCampaign] || '');
+        if (!selected.includes(val)) return false;
+      }
+    }
+
+    return true;
   });
 
   return (
@@ -118,6 +166,20 @@ export default function ChannelDetailView({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
+        
+        <div className={styles.sortBar}>
+          <span className={styles.sortLabel}>Ordenar por:</span>
+          <select 
+            className={styles.sortSelect} 
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
+            <option value="name-asc">A-Z</option>
+            <option value="name-desc">Z-A</option>
+            <option value="date-desc">Mais recente</option>
+            <option value="date-asc">Mais antigo</option>
+          </select>
+        </div>
         {filter && (
           <span className={styles.filterCount}>
             {filtered.length} de {creatives.length}
@@ -131,19 +193,84 @@ export default function ChannelDetailView({
           <thead>
             <tr>
               <th className={styles.thUpload}>Upload</th>
-              <th className={styles.thCampaign}>Campanha</th>
+              <th className={styles.thCampaign}>
+                Campanha
+                <ColumnFilter 
+                  label="Campanha"
+                  options={getUniqueValues('campaignTitle')}
+                  selectedOptions={columnFilters['campaignTitle'] || []}
+                  onFilterChange={(s) => toggleColumnFilter('campaignTitle', s)}
+                  onClear={() => toggleColumnFilter('campaignTitle', [])}
+                />
+              </th>
+              <th className={styles.thContent}>
+                Conteúdo
+                <ColumnFilter 
+                  label="Conteúdo"
+                  options={getUniqueValues('contentType')}
+                  selectedOptions={columnFilters['contentType'] || []}
+                  onFilterChange={(s) => toggleColumnFilter('contentType', s)}
+                  onClear={() => toggleColumnFilter('contentType', [])}
+                />
+              </th>
               <th className={styles.thName}>Nome do Criativo</th>
               {channelType === "Tráfego Pago" ? (
-                <th>Objetivo</th>
+                <th>
+                    Objetivo
+                    <ColumnFilter 
+                      label="Objetivo"
+                      options={getUniqueValues('objective')}
+                      selectedOptions={columnFilters['objective'] || []}
+                      onFilterChange={(s) => toggleColumnFilter('objective', s)}
+                      onClear={() => toggleColumnFilter('objective', [])}
+                    />
+                </th>
               ) : (
                 <>
-                  <th>Hook</th>
-                  <th>Formato</th>
-                  <th>CTA</th>
+                  <th>
+                    Hook
+                    <ColumnFilter 
+                      label="Hook"
+                      options={getUniqueValues('hookType')}
+                      selectedOptions={columnFilters['hookType'] || []}
+                      onFilterChange={(s) => toggleColumnFilter('hookType', s)}
+                      onClear={() => toggleColumnFilter('hookType', [])}
+                    />
+                  </th>
+                  <th>
+                    Formato
+                    <ColumnFilter 
+                      label="Formato"
+                      options={getUniqueValues('format')}
+                      selectedOptions={columnFilters['format'] || []}
+                      onFilterChange={(s) => toggleColumnFilter('format', s)}
+                      onClear={() => toggleColumnFilter('format', [])}
+                    />
+                  </th>
+                  <th>
+                    CTA
+                    <ColumnFilter 
+                      label="CTA"
+                      options={getUniqueValues('ctaType')}
+                      selectedOptions={columnFilters['ctaType'] || []}
+                      onFilterChange={(s) => toggleColumnFilter('ctaType', s)}
+                      onClear={() => toggleColumnFilter('ctaType', [])}
+                    />
+                  </th>
                 </>
               )}
-              <th>Sub-canais</th>
+              <th>
+                Sub-canais
+                <ColumnFilter 
+                  label="Sub-canais"
+                  options={getSubChannelValues()}
+                  selectedOptions={columnFilters['subChannels'] || []}
+                  onFilterChange={(s) => toggleColumnFilter('subChannels', s)}
+                  onClear={() => toggleColumnFilter('subChannels', [])}
+                />
+              </th>
               <th>Drive</th>
+              <th className={styles.thActions}></th>
             </tr>
           </thead>
           <tbody>
@@ -176,6 +303,11 @@ export default function ChannelDetailView({
                 </td>
                 <td className={styles.tdCampaign}>
                   <span className={styles.campaignPill}>{creative.campaignTitle}</span>
+                </td>
+                <td className={styles.tdContent}>
+                  <span className={`${styles.contentPill} ${creative.contentType === 'Estático' ? styles.pillStatic : styles.pillVideo}`}>
+                    {creative.contentType || 'Vídeo'}
+                  </span>
                 </td>
                 <td className={styles.tdName}>
                   {editingCreativeId === creative.id ? (
@@ -261,6 +393,18 @@ export default function ChannelDetailView({
                     <span className={styles.empty}>—</span>
                   )}
                 </td>
+                <td className={styles.tdActions}>
+                  <button 
+                    className={styles.deleteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCreative(creative.id);
+                    }}
+                    title="Excluir Criativo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -293,9 +437,13 @@ export default function ChannelDetailView({
           onRemoveCustomOption={onRemoveCustomOption}
           objectives={objectives}
           trafegoSubs={trafegoSubs}
-          organicoSubs={trafegoSubs}
-          onAddSubChannel={(ch, v) => onAddSubChannel(v)}
-          onRemoveSubChannel={(ch, v) => onRemoveSubChannel(v)}
+          organicoSubs={organicoSubs}
+          onAddSubChannel={(ch: Channel, v: string) => onAddSubChannel(v)}
+          onRemoveSubChannel={(ch: Channel, v: string) => onRemoveSubChannel(v)}
+          onDelete={() => {
+            onDeleteCreative(selectedCreative.id);
+            setSelectedCreative(null);
+          }}
         />
       )}
     </div>

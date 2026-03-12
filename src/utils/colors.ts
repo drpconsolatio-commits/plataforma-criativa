@@ -1,6 +1,17 @@
-export function getBadgeStyle(text: string | null | undefined): React.CSSProperties {
+export function getBadgeStyle(
+  text: string | null | undefined, 
+  variant: 'colored' | 'neutral' = 'colored'
+): React.CSSProperties {
   if (!text) return {};
   
+  if (variant === 'neutral') {
+    return {
+      background: "rgba(107, 114, 128, 0.1)", // Gray-500 equivalent with opacity
+      color: "var(--text-muted)",
+      border: "1px solid rgba(107, 114, 128, 0.2)"
+    };
+  }
+
   // Cores prefixadas para objetivos padrão manterem a fidelidade visual original
   const lower = text.toLowerCase().trim();
   if (lower.includes("captação")) return { background: "#dbeafe", color: "#1e40af" };
@@ -9,7 +20,7 @@ export function getBadgeStyle(text: string | null | undefined): React.CSSPropert
   if (lower.includes("perpétuo")) return { background: "#f3f4f6", color: "#1f2937" };
   if (lower.includes("google")) return { background: "#991b1b", color: "#ffffff" };
 
-  // Para tags adicionadas manualmente, geramos uma cor única baseada no texto
+  // Para tags adicionadas manualmente (Hook, Formato, CTA), geramos uma cor única baseada no texto
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
     hash = text.charCodeAt(i) + ((hash << 5) - hash);

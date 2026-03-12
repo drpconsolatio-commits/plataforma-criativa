@@ -60,6 +60,27 @@
   color: var(--text-primary);
 }
 
+.contentPill {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pillVideo {
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid rgba(124, 92, 252, 0.2);
+}
+
+.pillStatic {
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--accent-success);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
 .meta {
   display: flex;
   align-items: center;
@@ -112,6 +133,37 @@
   font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* Sorting */
+.sortBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sortLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sortSelect {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sortSelect:hover {
+  border-color: var(--accent-primary);
 }
 
 /* Table Wrapper */
@@ -189,6 +241,7 @@
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
+  position: relative;
 }
 
 .thUpload {
@@ -222,6 +275,38 @@
 .row td {
   padding: 12px 16px;
   vertical-align: middle;
+}
+
+.thActions {
+  width: 50px;
+}
+
+.tdActions {
+  text-align: right;
+  padding-right: 20px !important;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all var(--transition-fast);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  color: var(--accent-error);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 /* Upload tag */

@@ -9,7 +9,8 @@ import CampaignDetailView from "../CampaignDetail/CampaignDetailView";
 import ChannelDetailView from "../CampaignDetail/ChannelDetailView";
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Undo2, Redo2 } from "lucide-react";
+import { useUndoRedo } from "../../hooks/useUndoRedo";
 import {
   DndContext,
   DragOverlay,
@@ -77,6 +78,8 @@ export interface Creative {
   materialBase?: string;
   generatedScripts?: { script: string; createdAt: number }[];
   objective?: string;
+  contentType?: 'Vídeo' | 'Estático';
+  designDirection?: string;
 }
 
 export interface CreativeWithCampaign extends Creative {
@@ -135,6 +138,8 @@ const createCreative = (
   materialBase: "",
   generatedScripts: [],
   objective: "",
+  contentType: extra.contentType || undefined,
+  designDirection: extra.designDirection || "",
   ...extra,
 });
 
@@ -167,7 +172,16 @@ export default function KanbanBoard() {
     }
   };
 
-  const [columns, setColumns] = useState<Column[]>(initialColumns);
+  const {
+    state: columns,
+    setState: setColumns,
+    commit,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset
+  } = useUndoRedo<Column[]>(initialColumns);
 
   const fetchBoard = useCallback(async () => {
     const { data: camps } = await supabase.from('campaigns').select('*').order('order_index', { ascending: true });
@@ -211,8 +225,9 @@ export default function KanbanBoard() {
         })).sort((a,b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1))
       }));
       setColumns(newCols);
+      reset(newCols);
     }
-  }, []);
+  }, [reset, setColumns]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -235,6 +250,76 @@ export default function KanbanBoard() {
   const [customObjectives, setCustomObjectives] = useState<string[]>(() => loadState("kb_objectives", DEFAULT_OBJECTIVES));
   const [trafegoSubs, setTrafegoSubs] = useState<string[]>(() => loadState("kb_trafego_subs", DEFAULT_TRAFEGO_SUBS));
   const [organicoSubs, setOrganicoSubs] = useState<string[]>(() => loadState("kb_organico_subs", DEFAULT_ORGANICO_SUBS));
+
+  const syncBoardToSupabase = useCallback(async (boardState: Column[]) => {
+    // 1. Extrair todas as campanhas e criativos do estado
+    const allCamps: any[] = [];
+    const allCreatives: any[] = [];
+
+    boardState.forEach((col) => {
+      col.cards.forEach((card, idx) => {
+        allCamps.push({
+          id: card.id,
+          title: card.title,
+          date: card.date,
+          column_id: col.id,
+          pinned: card.pinned,
+          checklist_roteirizacao: card.checklist.roteirizacao,
+          checklist_edicao: card.checklist.edicao,
+          labels: card.labels,
+          order_index: idx
+        });
+
+        card.creatives.forEach((cr) => {
+          allCreatives.push({
+            id: cr.id,
+            campaign_id: card.id,
+            name: cr.name,
+            hook_type: cr.hookType,
+            marketing_angle: cr.marketingAngle,
+            format: cr.format,
+            cta_type: cr.ctaType,
+            status: cr.status,
+            channels: cr.channels,
+            sub_channels: cr.subChannels,
+            drive_link: cr.driveLink,
+            uploaded_to_channels: cr.uploadedToChannels,
+            reference: cr.reference,
+            notes: cr.notes,
+            recording_direction: cr.recordingDirection,
+            editing_direction: cr.editingDirection,
+            material_base: cr.materialBase,
+            generated_scripts: cr.generatedScripts,
+            objective: cr.objective,
+            content_type: cr.contentType,
+            design_direction: cr.designDirection
+          });
+        });
+      });
+    });
+
+    // 2. Realizar UPSERT no Supabase
+    if (allCamps.length > 0) {
+      await supabase.from('campaigns').upsert(allCamps);
+    }
+    if (allCreatives.length > 0) {
+      await supabase.from('creatives').upsert(allCreatives);
+    }
+  }, []);
+
+  const handleUndo = useCallback(async () => {
+    const previous = undo();
+    if (previous) {
+      await syncBoardToSupabase(previous);
+    }
+  }, [undo, syncBoardToSupabase]);
+
+  const handleRedo = useCallback(async () => {
+    const next = redo();
+    if (next) {
+      await syncBoardToSupabase(next);
+    }
+  }, [redo, syncBoardToSupabase]);
   const [boardFilter, setBoardFilter] = useState("");
 
   // --- Persist to localStorage ---
@@ -352,10 +437,12 @@ export default function KanbanBoard() {
     if (updates.materialBase !== undefined) dbUpdates.material_base = updates.materialBase;
     if (updates.generatedScripts !== undefined) dbUpdates.generated_scripts = updates.generatedScripts;
     if (updates.objective !== undefined) dbUpdates.objective = updates.objective;
+    if (updates.contentType !== undefined) dbUpdates.content_type = updates.contentType;
+    if (updates.designDirection !== undefined) dbUpdates.design_direction = updates.designDirection;
     if (Object.keys(dbUpdates).length > 0) supabase.from('creatives').update(dbUpdates).eq('id', creativeId).then();
   
-    setColumns((prev) =>
-      prev.map((col) => ({
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
         ...col,
         cards: col.cards.map((card) =>
           card.id === campaignId
@@ -367,8 +454,13 @@ export default function KanbanBoard() {
               }
             : card
         ),
-      }))
-    );
+      }));
+      // Só commitamos no histórico se não forem campos de texto frequentes (notas, etc)
+      // Ou deixamos o commit para quando o painel fechar? 
+      // Para simplificar, vamos commitar aqui, mas Idealmente seria debounced.
+      commit(newState);
+      return newState;
+    });
     if (activeView.type === "campaign" && activeView.card.id === campaignId) {
       setActiveView((prev) => {
         if (prev.type !== "campaign") return prev;
@@ -379,6 +471,42 @@ export default function KanbanBoard() {
             creatives: prev.card.creatives.map((cr) =>
               cr.id === creativeId ? { ...cr, ...updates } : cr
             ),
+          },
+        };
+      });
+    }
+  };
+
+  const deleteCreative = async (campaignId: string, creativeId: string) => {
+    const confirmed = window.confirm("Tem certeza que deseja excluir este criativo?");
+    if (!confirmed) return;
+
+    // 1. Delete do Supabase
+    await supabase.from('creatives').delete().eq('id', creativeId);
+
+    // 2. Update estadolocal (Columns)
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
+        ...col,
+        cards: col.cards.map((card) =>
+          card.id === campaignId
+            ? { ...card, creatives: card.creatives.filter((cr) => cr.id !== creativeId) }
+            : card
+        ),
+      }));
+      commit(newState);
+      return newState;
+    });
+
+    // 3. Update view ativa se necessário
+    if (activeView.type === "campaign" && activeView.card.id === campaignId) {
+      setActiveView((prev) => {
+        if (prev.type !== "campaign") return prev;
+        return {
+          ...prev,
+          card: {
+            ...prev.card,
+            creatives: prev.card.creatives.filter((cr) => cr.id !== creativeId),
           },
         };
       });
@@ -586,33 +714,42 @@ export default function KanbanBoard() {
            supabase.from('campaigns').update({ order_index: idx }).eq('id', c.id).then();
         });
         
+        commit(newCols);
         return newCols;
       });
+    } else if (overCol && col.id !== overCol.id) {
+        // Se mudou de coluna, o commit já aconteceu no DragOver ou deve acontecer aqui?
+        // DragOver usa setColumns (sem commit). Então devemos commitar aqui.
+        commit(columns);
     }
   };
 
   // --- Delete card ---
   const deleteCard = async (cardId: string) => {
     supabase.from('campaigns').delete().eq('id', cardId).then();
-    setColumns((prev) =>
-      prev.map((col) => ({
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
         ...col,
         cards: col.cards.filter((c) => c.id !== cardId),
-      }))
-    );
+      }));
+      commit(newState);
+      return newState;
+    });
   };
 
   // --- Rename card ---
   const renameCard = async (cardId: string, newTitle: string) => {
     supabase.from('campaigns').update({ title: newTitle }).eq('id', cardId).then();
-    setColumns((prev) =>
-      prev.map((col) => ({
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
         ...col,
         cards: col.cards.map((c) =>
           c.id === cardId ? { ...c, title: newTitle } : c
         ),
-      }))
-    );
+      }));
+      commit(newState);
+      return newState;
+    });
     // Also update activeView if this card is open
     if (activeView.type === "campaign" && activeView.card.id === cardId) {
       setActiveView((prev) => {
@@ -628,8 +765,8 @@ export default function KanbanBoard() {
     if (card) {
        supabase.from('campaigns').update({ pinned: !card.pinned }).eq('id', cardId).then();
     }
-    setColumns((prev) =>
-      prev.map((col) => {
+    setColumns((prev) => {
+      const newState = prev.map((col) => {
         const cardIndex = col.cards.findIndex((c) => c.id === cardId);
         if (cardIndex === -1) return col;
         const updatedCards = col.cards.map((c) =>
@@ -638,8 +775,10 @@ export default function KanbanBoard() {
         // Sort: pinned first, then maintain order
         updatedCards.sort((a, b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1));
         return { ...col, cards: updatedCards };
-      })
-    );
+      });
+      commit(newState);
+      return newState;
+    });
   };
 
   // --- Add label to card ---
@@ -648,14 +787,16 @@ export default function KanbanBoard() {
     if (card) {
        supabase.from('campaigns').update({ labels: [...card.labels, label] }).eq('id', cardId).then();
     }
-    setColumns((prev) =>
-      prev.map((col) => ({
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
         ...col,
         cards: col.cards.map((c) =>
           c.id === cardId ? { ...c, labels: [...c.labels, label] } : c
         ),
-      }))
-    );
+      }));
+      commit(newState);
+      return newState;
+    });
   };
 
   // --- Remove label from card ---
@@ -664,16 +805,18 @@ export default function KanbanBoard() {
     if (card) {
        supabase.from('campaigns').update({ labels: card.labels.filter(l => l.id !== labelId) }).eq('id', cardId).then();
     }
-    setColumns((prev) =>
-      prev.map((col) => ({
+    setColumns((prev) => {
+      const newState = prev.map((col) => ({
         ...col,
         cards: col.cards.map((c) =>
           c.id === cardId
             ? { ...c, labels: c.labels.filter((l) => l.id !== labelId) }
             : c
         ),
-      }))
-    );
+      }));
+      commit(newState);
+      return newState;
+    });
   };
 
   // --- Modal handler ---
@@ -684,7 +827,7 @@ export default function KanbanBoard() {
   }) => {
     const campId = crypto.randomUUID();
     const newCreatives = data.creativeNames.map((name, i) =>
-      createCreative(crypto.randomUUID(), name, "Visual", "", "Talkinghead", "Suave", "pending")
+      createCreative(crypto.randomUUID(), name, "", "", "", "", "pending")
     );
     const newCard: CampaignCard = {
       id: campId,
@@ -695,11 +838,13 @@ export default function KanbanBoard() {
       labels: [],
       creatives: newCreatives as Creative[],
     };
-    setColumns((prev) =>
-      prev.map((col) =>
+    setColumns((prev) => {
+      const newState = prev.map((col) =>
         col.id === data.columnId ? { ...col, cards: [...col.cards, newCard] } : col
-      )
-    );
+      );
+      commit(newState);
+      return newState;
+    });
     setShowModal(false);
 
     await supabase.from('campaigns').insert({
@@ -749,6 +894,9 @@ export default function KanbanBoard() {
         onAddCreative={(creative: Creative) =>
           addCreativeToCampaign(activeView.card.id, creative)
         }
+        onDeleteCreative={(creativeId: string) =>
+          deleteCreative(activeView.card.id, creativeId)
+        }
         hookTypes={customHookTypes}
         formats={customFormats}
         ctaTypes={customCtaTypes}
@@ -783,9 +931,14 @@ export default function KanbanBoard() {
         onAddCustomOption={addCustomOption}
         onRemoveCustomOption={removeCustomOption}
         objectives={customObjectives}
-        trafegoSubs={activeView.channelType === "Tráfego Pago" ? trafegoSubs : organicoSubs}
+        trafegoSubs={trafegoSubs}
+        organicoSubs={organicoSubs}
         onAddSubChannel={(value: string) => addSubChannel(activeView.channelType, value)}
         onRemoveSubChannel={(value: string) => removeSubChannel(activeView.channelType, value)}
+        onDeleteCreative={(creativeId: string) => {
+          const campaignId = findCreativeCampaign(creativeId);
+          if (campaignId) deleteCreative(campaignId, creativeId);
+        }}
       />
     );
   }
@@ -807,6 +960,25 @@ export default function KanbanBoard() {
     orderedColumns.push("canais");
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        if (canUndo) {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')) {
+        if (canRedo) {
+          e.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo, canUndo, canRedo]);
+
   return (
     <DndContext
       sensors={sensors}
@@ -823,16 +995,36 @@ export default function KanbanBoard() {
             <span className={styles.subtitle}>Painel Kanban</span>
           </div>
           <div className={styles.headerCenter}>
-            <div style={{position: 'relative', width: '100%'}}>
-              <Search size={16} color="var(--text-muted)" style={{position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)'}} />
-              <input
-                type="text"
-                className={styles.filterInput}
-                style={{paddingLeft: 34}}
-                placeholder="Filtrar cards e criativos..."
-                value={boardFilter}
-                onChange={(e) => setBoardFilter(e.target.value)}
-              />
+            <div style={{position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: '12px'}}>
+              <div style={{position: 'relative', flex: 1}}>
+                <Search size={16} color="var(--text-muted)" style={{position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)'}} />
+                <input
+                  type="text"
+                  className={styles.filterInput}
+                  style={{paddingLeft: 34}}
+                  placeholder="Filtrar cards e criativos..."
+                  value={boardFilter}
+                  onChange={(e) => setBoardFilter(e.target.value)}
+                />
+              </div>
+              <div className={styles.undoRedoGroup}>
+                <button 
+                  className={styles.undoRedoBtn} 
+                  disabled={!canUndo} 
+                  onClick={handleUndo}
+                  title="Desfazer (Ctrl+Z)"
+                >
+                  <Undo2 size={16} />
+                </button>
+                <button 
+                  className={styles.undoRedoBtn} 
+                  disabled={!canRedo} 
+                  onClick={handleRedo}
+                  title="Refazer (Ctrl+Y)"
+                >
+                  <Redo2 size={16} />
+                </button>
+              </div>
             </div>
           </div>
           <div className={styles.headerRight}>

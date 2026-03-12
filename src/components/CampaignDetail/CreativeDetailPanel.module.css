@@ -72,6 +72,26 @@
   color: var(--text-primary);
 }
 
+.deletePanelBtn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.deletePanelBtn:hover {
+  color: var(--accent-error);
+  border-color: var(--accent-error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
 /* Body */
 .panelBody {
   flex: 1;
@@ -320,7 +340,53 @@
   font-weight: 700;
 }
 
-/* Status toggle */
+/* Content Selector (Video/Static Toggle) */
+.contentSelector {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-raised);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  height: 40px;
+  align-items: center;
+}
+
+.tagBtn {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  padding: 0 12px;
+}
+
+.tagBtn:hover {
+  color: var(--text-primary);
+  background: var(--glass-hover);
+}
+
+.tagActive {
+  background: var(--accent-primary);
+  color: #fff !important;
+  box-shadow: 0 2px 8px var(--accent-primary-glow);
+}
+
+.inputNameWithTag {
+  flex: 1.5 !important;
+}
+
+.fieldContent {
+  flex: 1 !important;
+}
+
 .statusToggle {
   display: inline-flex;
   align-items: center;

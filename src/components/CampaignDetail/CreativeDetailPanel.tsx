@@ -2,7 +2,7 @@
 
 import styles from "./CreativeDetailPanel.module.css";
 import { useState, useRef, useEffect } from "react";
-import { X, Bot, Sparkles, Mic, Square, Loader2, Play, Check, Copy, History, Plus, Settings } from "lucide-react";
+import { X, Bot, Sparkles, Mic, Square, Loader2, Play, Check, Copy, History, Plus, Settings, Trash2 } from "lucide-react";
 import type { Creative, Channel } from "../Kanban/KanbanBoard";
 import { CHANNELS } from "../Kanban/KanbanBoard";
 import { useAudioRecorder } from "../../hooks/useAudioRecorder";
@@ -22,6 +22,7 @@ interface Props {
   organicoSubs: string[];
   onAddSubChannel: (channel: Channel, value: string) => void;
   onRemoveSubChannel: (channel: Channel, value: string) => void;
+  onDelete?: () => void;
 }
 
 /* ---- Audio Hook Extracted Globally ---- */
@@ -238,6 +239,7 @@ export default function CreativeDetailPanel({
   onAddSubChannel,
   onRemoveSubChannel,
   objectives,
+  onDelete,
 }: Props) {
   const { openChat } = useAgent();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -327,44 +329,80 @@ export default function CreativeDetailPanel({
         {/* Header */}
         <div className={styles.panelHeader}>
           <h2 className={styles.panelTitle}>Detalhe do Criativo</h2>
-          <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {onDelete && (
+              <button 
+                className={styles.deletePanelBtn} 
+                onClick={onDelete}
+                title="Excluir este criativo"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+            <button className={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+          </div>
         </div>
 
         <div className={styles.panelBody}>
-          {/* Name */}
-          <div className={styles.field}>
-            <label className={styles.label}>Nome</label>
-            <input
-              type="text"
-              className={styles.input}
-              value={creative.name}
-              onChange={(e) => onUpdate({ name: e.target.value })}
-            />
-          </div>
-
-          {/* Row: Hook + Format */}
+          {/* Row: Name + Content Type */}
           <div className={styles.fieldRow}>
-            <CustomSelect
-              label="Tipo de Hook"
-              value={creative.hookType}
-              options={hookTypes}
-              onChange={(v) => onUpdate({ hookType: v })}
-              onAdd={onAddCustomOption}
-              onRemove={onRemoveCustomOption}
-              optionType="hook"
-            />
-            <CustomSelect
-              label="Formato"
-              value={creative.format}
-              options={formats}
-              onChange={(v) => onUpdate({ format: v })}
-              onAdd={onAddCustomOption}
-              onRemove={onRemoveCustomOption}
-              optionType="format"
-            />
+            <div className={`${styles.field} ${styles.inputNameWithTag}`}>
+              <label className={styles.label}>Nome</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={creative.name}
+                onChange={(e) => onUpdate({ name: e.target.value })}
+              />
+            </div>
+            <div className={`${styles.field} ${styles.fieldContent}`}>
+              <label className={styles.label}>Conteúdo</label>
+              <div className={styles.contentSelector}>
+                <button 
+                  type="button"
+                  className={`${styles.tagBtn} ${creative.contentType === 'Vídeo' ? styles.tagActive : ''}`}
+                  onClick={() => onUpdate({ contentType: 'Vídeo' })}
+                >
+                  Vídeo
+                </button>
+                <button 
+                  type="button"
+                  className={`${styles.tagBtn} ${creative.contentType === 'Estático' ? styles.tagActive : ''}`}
+                  onClick={() => onUpdate({ contentType: 'Estático' })}
+                >
+                  Estático
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Row: Angle + CTA */}
+          {creative.contentType !== 'Estático' && (
+            <>
+              {/* Row: Hook + Format */}
+              <div className={styles.fieldRow}>
+                <CustomSelect
+                  label="Tipo de Hook"
+                  value={creative.hookType}
+                  options={hookTypes}
+                  onChange={(v) => onUpdate({ hookType: v })}
+                  onAdd={onAddCustomOption}
+                  onRemove={onRemoveCustomOption}
+                  optionType="hook"
+                />
+                <CustomSelect
+                  label="Formato"
+                  value={creative.format}
+                  options={formats}
+                  onChange={(v) => onUpdate({ format: v })}
+                  onAdd={onAddCustomOption}
+                  onRemove={onRemoveCustomOption}
+                  optionType="format"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Row: Angle + CTA (CTA hidden for Static) */}
           <div className={styles.fieldRow}>
             <div className={styles.field}>
               <label className={styles.label}>Ângulo de Marketing</label>
@@ -376,30 +414,19 @@ export default function CreativeDetailPanel({
                 onChange={(e) => onUpdate({ marketingAngle: e.target.value })}
               />
             </div>
-            <CustomSelect
-              label="Tipo de CTA"
-              value={creative.ctaType}
-              options={ctaTypes}
-              onChange={(v) => onUpdate({ ctaType: v })}
-              onAdd={onAddCustomOption}
-              onRemove={onRemoveCustomOption}
-              optionType="cta"
-            />
+            {creative.contentType !== 'Estático' && (
+              <CustomSelect
+                label="Tipo de CTA"
+                value={creative.ctaType}
+                options={ctaTypes}
+                onChange={(v) => onUpdate({ ctaType: v })}
+                onAdd={onAddCustomOption}
+                onRemove={onRemoveCustomOption}
+                optionType="cta"
+              />
+            )}
           </div>
 
-          {/* Objective Row */}
-          <div className={styles.fieldRow}>
-             <ObjectiveSelect 
-               value={creative.objective || ""} 
-               onChange={(v) => onUpdate({ objective: v })} 
-               objectives={objectives}
-               onAddCustomOption={onAddCustomOption}
-               onRemoveCustomOption={onRemoveCustomOption}
-             />
-             <div className={styles.field}>
-                {/* Empty space for balance or add something else later */}
-             </div>
-          </div>
 
           <div className={styles.divider} />
 
@@ -519,54 +546,86 @@ export default function CreativeDetailPanel({
 
           <div className={styles.divider} />
 
-          {/* Recording Direction */}
-          <div className={styles.field}>
-            <div className={styles.labelRow}>
-              <label className={styles.label}>
-                Direcional de Gravação
-              </label>
-              <button 
-                type="button" 
-                className={`${styles.micBtn} ${isRecording && activeVoiceField === 'recordingDirection' ? styles.micRecording : ''}`}
-                onClick={() => handleMicClick('recordingDirection')}
-                title="Gravar por voz"
-                disabled={isTranscribing && activeVoiceField === 'recordingDirection'}
-              >
-                {isRecording && activeVoiceField === 'recordingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'recordingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
-              </button>
+          {/* Conditional Design Direction for Static */}
+          {creative.contentType === 'Estático' && (
+            <div className={styles.field}>
+              <label className={styles.label}>DIRECIONAL DE DESIGN</label>
+              <textarea
+                className={styles.textarea}
+                placeholder="Descreva as orientações de design para esta peça estática..."
+                rows={4}
+                value={creative.designDirection || ""}
+                onChange={(e) => onUpdate({ designDirection: e.target.value })}
+              />
             </div>
-            <textarea
-              className={styles.textarea}
-              placeholder="Direcionamentos para gravação…"
-              rows={3}
-              value={creative.recordingDirection}
-              onChange={(e) => onUpdate({ recordingDirection: e.target.value })}
-            />
-          </div>
+          )}
 
-          {/* Editing Direction */}
-          <div className={styles.field}>
-            <div className={styles.labelRow}>
-              <label className={styles.label}>
-                Direcional de Edição
-              </label>
-              <button 
-                type="button" 
-                className={`${styles.micBtn} ${isRecording && activeVoiceField === 'editingDirection' ? styles.micRecording : ''}`}
-                onClick={() => handleMicClick('editingDirection')}
-                title="Gravar por voz"
-                disabled={isTranscribing && activeVoiceField === 'editingDirection'}
-              >
-                 {isRecording && activeVoiceField === 'editingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'editingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
-              </button>
-            </div>
-            <textarea
-              className={styles.textarea}
-              placeholder="Direcionamentos para edição…"
-              rows={3}
-              value={creative.editingDirection}
-              onChange={(e) => onUpdate({ editingDirection: e.target.value })}
-            />
+          {creative.contentType !== 'Estático' && (
+            <>
+              {/* Recording Direction */}
+              <div className={styles.field}>
+                <div className={styles.labelRow}>
+                  <label className={styles.label}>
+                    Direcional de Gravação
+                  </label>
+                  <button 
+                    type="button" 
+                    className={`${styles.micBtn} ${isRecording && activeVoiceField === 'recordingDirection' ? styles.micRecording : ''}`}
+                    onClick={() => handleMicClick('recordingDirection')}
+                    title="Gravar por voz"
+                    disabled={isTranscribing && activeVoiceField === 'recordingDirection'}
+                  >
+                    {isRecording && activeVoiceField === 'recordingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'recordingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
+                  </button>
+                </div>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Direcionamentos para gravação…"
+                  rows={3}
+                  value={creative.recordingDirection}
+                  onChange={(e) => onUpdate({ recordingDirection: e.target.value })}
+                />
+              </div>
+
+              {/* Editing Direction */}
+              <div className={styles.field}>
+                <div className={styles.labelRow}>
+                  <label className={styles.label}>
+                    Direcional de Edição
+                  </label>
+                  <button 
+                    type="button" 
+                    className={`${styles.micBtn} ${isRecording && activeVoiceField === 'editingDirection' ? styles.micRecording : ''}`}
+                    onClick={() => handleMicClick('editingDirection')}
+                    title="Gravar por voz"
+                    disabled={isTranscribing && activeVoiceField === 'editingDirection'}
+                  >
+                     {isRecording && activeVoiceField === 'editingDirection' ? <Square size={14} /> : isTranscribing && activeVoiceField === 'editingDirection' ? <Loader2 size={14} className={styles.spinIcon} /> : <Mic size={14} />}
+                  </button>
+                </div>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Direcionamentos para edição…"
+                  rows={3}
+                  value={creative.editingDirection}
+                  onChange={(e) => onUpdate({ editingDirection: e.target.value })}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Objective Row (Moved to bottom) */}
+          <div className={styles.fieldRow}>
+             <ObjectiveSelect 
+               value={creative.objective || ""} 
+               onChange={(v) => onUpdate({ objective: v })} 
+               objectives={objectives}
+               onAddCustomOption={onAddCustomOption}
+               onRemoveCustomOption={onRemoveCustomOption}
+             />
+             <div className={styles.field}>
+                {/* Espaço para equilíbrio / Seção de Tráfego */}
+             </div>
           </div>
 
           <div className={styles.divider} />

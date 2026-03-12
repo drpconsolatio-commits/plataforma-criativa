@@ -62,6 +62,39 @@
   color: var(--text-muted);
 }
 
+.undoRedoGroup {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-deep);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.undoRedoBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.undoRedoBtn:hover:not(:disabled) {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+.undoRedoBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .headerRight {
   display: flex;
   gap: 10px;
