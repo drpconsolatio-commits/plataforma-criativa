@@ -210,7 +210,9 @@ export default function KanbanBoard() {
            materialBase: cr.material_base || '',
            generatedScripts: cr.generated_scripts || [],
            objective: cr.objective || '',
-         });
+            contentType: cr.content_type || undefined,
+            designDirection: cr.design_direction || '',
+          });
       });
       const newCols = initialColumns.map(col => ({
         ...col,

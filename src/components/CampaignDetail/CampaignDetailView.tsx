@@ -107,11 +107,13 @@ export default function CampaignDetailView({
     if (!filter) return true;
     const q = filter.toLowerCase();
     return (
-      c.name.toLowerCase().includes(q) ||
-      c.hookType.toLowerCase().includes(q) ||
-      c.format.toLowerCase().includes(q) ||
-      c.ctaType.toLowerCase().includes(q) ||
-      c.marketingAngle.toLowerCase().includes(q)
+      (c.name?.toLowerCase().includes(q) || false) ||
+      (card.title?.toLowerCase().includes(q) || false) || // Assuming card.title is the campaignTitle
+      (c.hookType?.toLowerCase().includes(q) || false) ||
+      (c.format?.toLowerCase().includes(q) || false) ||
+      (c.ctaType?.toLowerCase().includes(q) || false) ||
+      (c.marketingAngle?.toLowerCase().includes(q) || false) ||
+      (c.subChannels?.some((s) => s.toLowerCase().includes(q)) || false)
     );
   });
 
