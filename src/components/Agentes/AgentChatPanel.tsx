@@ -26,6 +26,7 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
   const [isThinking, setIsThinking] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
+  const [attachedImage, setAttachedImage] = useState<{base64: string, mimeType: string} | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,6 +78,26 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
         ]);
      }
   }, [activeSessionId, dbMessages, agentName]);
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64String = (event.target?.result as string).split(',')[1];
+            setAttachedImage({
+              base64: base64String,
+              mimeType: file.type
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  };
 
   const handleSend = async (e?: React.FormEvent, manualHistory?: any[]) => {
     if (e) e.preventDefault();
@@ -133,6 +154,7 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
         signal: controller.signal,
         body: JSON.stringify({
            agentId,
+           attachedImage, // Enviar imagem anexada
            messages: newMessages.map((m: any, idx: number) => {
              // Injetar o contexto apenas na última mensagem do usuário enviada para a API
              if (idx === newMessages.length - 1 && m.role === 'user') {
@@ -191,6 +213,7 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
       setIsLoading(false);
       setIsThinking(false);
       setAbortController(null);
+      setAttachedImage(null); // Limpar imagem após envio
     }
   };
 
@@ -347,6 +370,18 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
               <div ref={messagesEndRef} />
             </div>
 
+            {attachedImage && (
+              <div className={styles.imagePreviewContainer}>
+                <div className={styles.imagePreview}>
+                  <img src={`data:${attachedImage.mimeType};base64,${attachedImage.base64}`} alt="Anexo" />
+                  <button className={styles.removeImageBtn} onClick={() => setAttachedImage(null)}>
+                    <XCircle size={14} />
+                  </button>
+                </div>
+                <span className={styles.imageLabel}>Imagem pronta para análise</span>
+              </div>
+            )}
+
             {isLoading && abortController && (
               <button className={styles.stopBtn} onClick={handleStopGeneration}>
                 <XCircle size={16}/> Parar Geração
@@ -364,6 +399,7 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
                 placeholder="Como posso ajudar com seus roteiros hoje?"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onPaste={handlePaste}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();

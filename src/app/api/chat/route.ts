@@ -8,11 +8,11 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const { messages, system_prompt, agentId } = await req.json();
+    const { messages, system_prompt, agentId, attachedImage } = await req.json();
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-    console.log(`-> [Gemini] POST /api/chat | Agente: ${agentId} | Key exists: ${!!apiKey}`);
+    console.log(`-> [Gemini] POST /api/chat | Agente: ${agentId} | Image: ${!!attachedImage}`);
 
-    // Ler Brain Knowledge se existir
+    // ... (rest of the logic remains same for brainKnowledge and model routing)
     let brainKnowledge = "";
     try {
       const brainPath = path.join(process.cwd(), "src/agents/knowledge/brain.md");
@@ -23,10 +23,7 @@ export async function POST(req: Request) {
       console.error("Erro ao ler brain.md:", e);
     }
 
-    // Configuração por Agente (Roteamento)
-    // Roteirista (cpy-1) -> gemini-2.0-flash, temp 0.8
-    // Planejador (pln-2) -> gemini-1.5-pro, temp 0.4
-    let modelName = "gemini-flash-latest"; // default
+    let modelName = "gemini-flash-latest"; 
     let temperature = 0.7;
 
     if (agentId === 'cpy-1') {
@@ -38,14 +35,8 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
-    const formattedDate = new Intl.DateTimeFormat('pt-BR', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    }).format(now);
+    const formattedDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
     const dateInstruction = `Hoje é ${formattedDate}.`;
-
     const systemInstruction = `${dateInstruction}\n\n${brainKnowledge}\n\n${system_prompt || "Você é um útil Agente Inteligente."}`;
 
     // Converter mensagens para formato Gemini
@@ -54,12 +45,22 @@ export async function POST(req: Request) {
       parts: [{ text: m.content }]
     }));
 
-    // O Gemini exige que a primeira mensagem do histórico seja do 'user'
     while (history.length > 0 && history[0].role === 'model') {
        history.shift();
     }
 
     const lastMessage = messages[messages.length - 1].content;
+    
+    // Preparar mensagem atual (Multimodal se houver imagem)
+    const currentMessageParts: any[] = [{ text: lastMessage }];
+    if (attachedImage) {
+      currentMessageParts.push({
+        inlineData: {
+          mimeType: attachedImage.mimeType,
+          data: attachedImage.base64
+        }
+      });
+    }
 
     let result;
     try {
@@ -69,17 +70,16 @@ export async function POST(req: Request) {
         systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] }
       });
       const chat = model.startChat({ history: history as any[] });
-      result = await chat.sendMessageStream(lastMessage);
+      result = await chat.sendMessageStream(currentMessageParts);
     } catch (err: any) {
       console.warn(`-> [Gemini] Erro no modelo principal ${modelName}:`, err.message);
-      // Fallback em caso de cota ou modelo não encontrado
       const fallbackModel = genAI.getGenerativeModel({ 
         model: "gemini-flash-latest",
         generationConfig: { temperature: 0.7 },
         systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] }
       });
       const chat = fallbackModel.startChat({ history: history as any[] });
-      result = await chat.sendMessageStream(lastMessage);
+      result = await chat.sendMessageStream(currentMessageParts);
     }
 
     const encoder = new TextEncoder();
