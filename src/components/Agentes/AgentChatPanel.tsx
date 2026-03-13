@@ -8,6 +8,7 @@ import { useAudioRecorder } from "../../hooks/useAudioRecorder";
 import { useAgentChats } from "../../hooks/useAgentChats";
 import { useAgent } from "@/context/AgentContext";
 import { supabase } from "@/lib/supabase";
+import ReactMarkdown from "react-markdown";
 
 interface AgentChatPanelProps {
   agentId: string;
@@ -99,6 +100,7 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+           agentId,
            messages: newMessages.map((m: any) => ({ role: m.role, content: m.content })),
            system_prompt: `Você é o ${agentName}, um especialista atuando como ${agentRole}. Aja profissionalmente, seja sucinto e muito perspicaz.`
         })
@@ -249,8 +251,9 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
                 <div key={msg.id} className={`${styles.messageWrapper} ${msg.role === "user" ? styles.wrapperUser : styles.wrapperAi}`}>
                    {msg.role !== "user" && <div className={styles.msgAvatar}><Bot size={14}/></div>}
                    <div className={`${styles.messageBubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAi}`}>
-                     {/* @ts-ignore */}
-                     {msg.content}
+                     <div className={styles.markdownContent}>
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                     </div>
                      {msg.role === "assistant" && targetCreativeId && (
                          <button 
                            className={styles.exportBtn}
