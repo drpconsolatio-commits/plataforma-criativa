@@ -9,14 +9,44 @@
 }
 
 .panel {
-  width: 100%;
-  max-width: 450px;
+  width: 50vw;
+  max-width: 50vw;
   background: var(--bg-surface);
   height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.05);
   animation: slideIn var(--transition-base) forwards;
+  position: relative;
+}
+
+.thinkingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  width: fit-content;
+  align-self: flex-start;
+  margin-left: 32px;
+}
+
+.thinkingIndicator span {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.thinkingIndicator span:nth-child(1) { animation-delay: -0.32s; }
+.thinkingIndicator span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
 }
 
 @keyframes fadeIn {
@@ -111,6 +141,43 @@
 .wrapperAi {
   align-self: flex-start;
   gap: 8px;
+}
+
+/* Message Actions */
+.messageActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.messageWrapper:hover .messageActions {
+  opacity: 1;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.actionBtn:hover {
+  background: rgba(124, 92, 252, 0.05);
+  color: var(--accent-primary);
+}
+
+.editBtn {
+  margin-top: 4px;
+  align-self: flex-end;
 }
 
 /* Base Buttons Update */
@@ -342,27 +409,34 @@
 
 /* Input */
 .inputArea {
-  padding: 16px 20px;
+  padding: 12px 20px;
   border-top: 1px solid var(--border-default);
   display: flex;
+  align-items: flex-end;
   gap: 12px;
   background: var(--bg-surface);
 }
 
-.input {
+.textarea {
   flex: 1;
   padding: 12px 16px;
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-full);
+  border-radius: 12px;
   font-size: 14px;
   background: var(--bg-body);
   color: var(--text-primary);
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  resize: none;
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-.input:focus {
+.textarea:focus {
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(124, 92, 252, 0.1);
+  background: var(--bg-surface);
 }
 
 .sendBtn {
@@ -383,6 +457,31 @@
 .sendBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.stopBtn {
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  z-index: 10;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.stopBtn:hover {
+  background: #DC2626;
 }
 /* Export Target Area */
 .exportTargetArea {
@@ -447,10 +546,11 @@
 /* Markdown Styling */
 .markdownContent {
   width: 100%;
+  color: inherit;
 }
 
 .markdownContent p {
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
 }
 
 .markdownContent p:last-child {
@@ -458,37 +558,69 @@
 }
 
 .markdownContent ul, .markdownContent ol {
-  margin: 8px 0;
+  margin: 12px 0;
   padding-left: 20px;
 }
 
 .markdownContent li {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .markdownContent table {
   width: 100%;
-  border-collapse: collapse;
-  margin: 12px 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 16px 0;
   font-size: 13px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .markdownContent th, .markdownContent td {
-  border: 1px solid var(--border-default);
-  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-default);
+  border-right: 1px solid var(--border-default);
+  padding: 10px 12px;
   text-align: left;
 }
 
+.markdownContent th:last-child, .markdownContent td:last-child {
+  border-right: none;
+}
+
+.markdownContent tr:last-child td {
+  border-bottom: none;
+}
+
 .markdownContent th {
-  background: var(--bg-body);
+  background: rgba(124, 92, 252, 0.05);
   font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.markdownContent pre {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  margin: 16px 0;
 }
 
 .markdownContent code {
-  background: var(--bg-body);
-  padding: 2px 4px;
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent-primary);
+  padding: 2px 6px;
   border-radius: 4px;
-  font-family: monospace;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+.markdownContent pre code {
+  background: transparent;
+  padding: 0;
+  color: #334155;
+  font-size: 13px;
 }
 
 /* Toast */

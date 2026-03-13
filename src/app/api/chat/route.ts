@@ -9,7 +9,8 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const { messages, system_prompt, agentId } = await req.json();
-    console.log(`-> [Gemini] POST /api/chat recebido para agente: ${agentId}`);
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+    console.log(`-> [Gemini] POST /api/chat | Agente: ${agentId} | Key exists: ${!!apiKey}`);
 
     // Ler Brain Knowledge se existir
     let brainKnowledge = "";
@@ -25,46 +26,65 @@ export async function POST(req: Request) {
     // Configuração por Agente (Roteamento)
     // Roteirista (cpy-1) -> gemini-2.0-flash, temp 0.8
     // Planejador (pln-2) -> gemini-1.5-pro, temp 0.4
-    let modelName = "gemini-1.5-flash"; // default
+    let modelName = "gemini-flash-latest"; // default
     let temperature = 0.7;
 
     if (agentId === 'cpy-1') {
       modelName = "gemini-2.0-flash";
       temperature = 0.8;
     } else if (agentId === 'pln-2') {
-      modelName = "gemini-1.5-pro";
+      modelName = "gemini-2.5-pro";
       temperature = 0.4;
     }
 
     const systemInstruction = `${brainKnowledge}\n\n${system_prompt || "Você é um útil Agente Inteligente."}`;
 
-    const model = genAI.getGenerativeModel({ 
-      model: modelName,
-      generationConfig: { temperature },
-      systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] }
-    });
-
     // Converter mensagens para formato Gemini
-    const history = messages.slice(0, -1).map((m: any) => ({
+    let history = messages.slice(0, -1).map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }]
     }));
+
+    // O Gemini exige que a primeira mensagem do histórico seja do 'user'
+    while (history.length > 0 && history[0].role === 'model') {
+       history.shift();
+    }
+
     const lastMessage = messages[messages.length - 1].content;
 
-    const chat = model.startChat({
-      history,
-    });
-
-    const result = await chat.sendMessageStream(lastMessage);
+    let result;
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: modelName,
+        generationConfig: { temperature },
+        systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] }
+      });
+      const chat = model.startChat({ history: history as any[] });
+      result = await chat.sendMessageStream(lastMessage);
+    } catch (err: any) {
+      console.warn(`-> [Gemini] Erro no modelo principal ${modelName}:`, err.message);
+      // Fallback em caso de cota ou modelo não encontrado
+      const fallbackModel = genAI.getGenerativeModel({ 
+        model: "gemini-flash-latest",
+        generationConfig: { temperature: 0.7 },
+        systemInstruction: { role: 'system', parts: [{ text: systemInstruction }] }
+      });
+      const chat = fallbackModel.startChat({ history: history as any[] });
+      result = await chat.sendMessageStream(lastMessage);
+    }
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        for await (const chunk of result.stream) {
-          const text = chunk.text();
-          controller.enqueue(encoder.encode(text));
+        try {
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            controller.enqueue(encoder.encode(text));
+          }
+          controller.close();
+        } catch (streamErr: any) {
+          controller.error(streamErr);
         }
-        controller.close();
       },
     });
 
