@@ -37,7 +37,16 @@ export async function POST(req: Request) {
       temperature = 0.4;
     }
 
-    const systemInstruction = `${brainKnowledge}\n\n${system_prompt || "Você é um útil Agente Inteligente."}`;
+    const now = new Date();
+    const formattedDate = new Intl.DateTimeFormat('pt-BR', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    }).format(now);
+    const dateInstruction = `Hoje é ${formattedDate}.`;
+
+    const systemInstruction = `${dateInstruction}\n\n${brainKnowledge}\n\n${system_prompt || "Você é um útil Agente Inteligente."}`;
 
     // Converter mensagens para formato Gemini
     let history = messages.slice(0, -1).map((m: any) => ({
