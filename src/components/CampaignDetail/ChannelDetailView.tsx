@@ -140,6 +140,9 @@ export default function ChannelDetailView({
       
       if (col === 'subChannels') {
         if (!cr.subChannels.some(s => selected.includes(s))) return false;
+      } else if (col === 'uploadedToChannels') {
+        const val = cr.uploadedToChannels ? 'Subido' : 'Não subido';
+        if (!selected.includes(val)) return false;
       } else {
         const val = String(cr[col as keyof CreativeWithCampaign] || '');
         if (!selected.includes(val)) return false;
@@ -204,7 +207,16 @@ export default function ChannelDetailView({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thUpload}>Upload</th>
+              <th className={styles.thUpload}>
+                Upload
+                <ColumnFilter 
+                  label="Upload"
+                  options={['Subido', 'Não subido']}
+                  selectedOptions={columnFilters['uploadedToChannels'] || []}
+                  onFilterChange={(s) => toggleColumnFilter('uploadedToChannels', s)}
+                  onClear={() => toggleColumnFilter('uploadedToChannels', [])}
+                />
+              </th>
               <th className={styles.thCampaign}>
                 Campanha
                 <ColumnFilter 
@@ -460,49 +472,6 @@ export default function ChannelDetailView({
           />
         )}
 
-        {contextMenu && (
-          <ContextMenu 
-            x={contextMenu.x}
-            y={contextMenu.y}
-            onClose={() => setContextMenu(null)}
-            actions={[
-              { 
-                label: "Mover para...", 
-                icon: <ArrowRightLeft size={14} />, 
-                onClick: () => setMoveCopyModal({ type: "move", creative: contextMenu.creative }) 
-              },
-              { 
-                label: "Copiar como modelo para...", 
-                icon: <Copy size={14} />, 
-                onClick: () => setMoveCopyModal({ type: "copy", creative: contextMenu.creative }) 
-              },
-              { 
-                label: "Excluir Criativo", 
-                icon: <Trash2 size={14} />, 
-                danger: true,
-                divider: true,
-                onClick: () => onDeleteCreative(contextMenu.creative.id)
-              }
-            ]}
-          />
-        )}
-
-        {moveCopyModal && (
-          <MoveCopyModal 
-            type={moveCopyModal.type}
-            creativeName={moveCopyModal.creative.name}
-            campaigns={allCampaigns}
-            onClose={() => setMoveCopyModal(null)}
-            onConfirm={(targetId) => {
-              if (moveCopyModal.type === "move") {
-                onMoveCreative(moveCopyModal.creative.id, targetId);
-              } else {
-                onCopyCreative(moveCopyModal.creative.id, targetId);
-              }
-              setMoveCopyModal(null);
-            }}
-          />
-        )}
 
         {creatives.length === 0 && (
           <div className={styles.emptyState}>
