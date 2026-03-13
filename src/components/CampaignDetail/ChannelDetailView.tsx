@@ -215,6 +215,7 @@ export default function ChannelDetailView({
                   selectedOptions={columnFilters['uploadedToChannels'] || []}
                   onFilterChange={(s) => toggleColumnFilter('uploadedToChannels', s)}
                   onClear={() => toggleColumnFilter('uploadedToChannels', [])}
+                  align="left"
                 />
               </th>
               <th className={styles.thCampaign}>
@@ -225,6 +226,7 @@ export default function ChannelDetailView({
                   selectedOptions={columnFilters['campaignTitle'] || []}
                   onFilterChange={(s) => toggleColumnFilter('campaignTitle', s)}
                   onClear={() => toggleColumnFilter('campaignTitle', [])}
+                  align="left"
                 />
               </th>
               <th className={styles.thContent}>

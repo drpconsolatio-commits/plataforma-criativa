@@ -283,6 +283,7 @@ export default function CampaignDetailView({
                     selectedOptions={columnFilters['contentType'] || []}
                     onFilterChange={(s) => toggleColumnFilter('contentType', s)}
                     onClear={() => toggleColumnFilter('contentType', [])}
+                    align="left"
                   />
                 )}
               </th>

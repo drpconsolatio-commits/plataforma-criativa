@@ -10,6 +10,7 @@ interface ColumnFilterProps {
   selectedOptions: string[];
   onFilterChange: (selected: string[]) => void;
   onClear: () => void;
+  align?: 'left' | 'right';
 }
 
 export default function ColumnFilter({
@@ -18,6 +19,7 @@ export default function ColumnFilter({
   selectedOptions,
   onFilterChange,
   onClear,
+  align = 'right'
 }: ColumnFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,10 @@ export default function ColumnFilter({
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown} onClick={(e) => e.stopPropagation()}>
+        <div 
+          className={`${styles.dropdown} ${align === 'left' ? styles.dropdownLeft : ""}`} 
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className={styles.dropdownHeader}>
             <span className={styles.dropdownTitle}>Filtrar {label}</span>
             <button className={styles.closeBtn} onClick={() => setIsOpen(false)}>
