@@ -109,6 +109,23 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
     setIsLoading(true);
     setIsThinking(true);
 
+    // Injeção de Contexto de Produto (Invisível)
+    let productContext = "";
+    try {
+      const catalog = require("../../agents/knowledge/catalog.json");
+      // O targetCreativeId pode ser usado como chave para o produto no catálogo 
+      // ou podemos adicionar uma lógica para descobrir qual produto esse criativo representa.
+      // Por simplicidade técnica imediata, vamos assumir que o targetCreativeId nos permite identificar o produto.
+      // Se tivermos o ID do produto vinculado ao criativo no banco, seria o ideal.
+      // Aqui, faremos uma busca por correspondência de ID caso o targetCreativeId coincida com um ID do catálogo
+      const product = catalog.find((p: any) => p.id === targetCreativeId);
+      if (product) {
+        productContext = `\n\n[CONTEXTO DE SISTEMA INVISÍVEL: O usuário está criando copy para o produto "${product.name}". Ficha técnica: ${product.attributes.join(", ")}. Foco: ${product.focus}. Use isso como base, mas não repita essas informações como um robô.]`;
+      }
+    } catch (e) {
+      console.warn("Catálogo não encontrado ou erro na injeção:", e);
+    }
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -116,7 +133,13 @@ export default function AgentChatPanel({ agentId, agentName, agentRole, onClose 
         signal: controller.signal,
         body: JSON.stringify({
            agentId,
-           messages: newMessages.map((m: any) => ({ role: m.role, content: m.content })),
+           messages: newMessages.map((m: any, idx: number) => {
+             // Injetar o contexto apenas na última mensagem do usuário enviada para a API
+             if (idx === newMessages.length - 1 && m.role === 'user') {
+               return { role: m.role, content: m.content + productContext };
+             }
+             return { role: m.role, content: m.content };
+           }),
            system_prompt: agentId === 'pln-2' 
              ? `Você é o Planejador Estratégico, um Analista de Tráfego e Estrategista de Marca. Diretriz: Leia o brain.md para entender a marca Consolatio. Quando o usuário informar um produto e um objetivo (ex: Lançamento, Evergreen, Retargeting), cruze isso com os arquétipos do brain.md. Sua função é definir QUAIS ângulos usar e qual a melhor linha editorial para o funil solicitado, antes de escrever qualquer roteiro.`
              : agentId === 'cpy-1'

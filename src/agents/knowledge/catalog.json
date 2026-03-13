@@ -1,0 +1,46 @@
+[
+  {
+    "id": "camisa-tech-gola-italiana",
+    "name": "Camisa Tech Gola Italiana",
+    "focus": "Lançamento",
+    "attributes": [
+      "Gola estruturada que dispensa o uso de gravata",
+      "Tecido tecnológico anti-amasso",
+      "Alta respirabilidade (não esquenta)",
+      "Design moderno e autoridade visual"
+    ]
+  },
+  {
+    "id": "camisa-ultra-stretch",
+    "name": "Camisa Ultra-Stretch",
+    "focus": "Performance Premium",
+    "attributes": [
+      "Composição: 83% poliamida / 17% elastano",
+      "Toque gelado e suave na pele",
+      "Gola francesa clássica",
+      "Flexibilidade extrema para movimentos livres"
+    ]
+  },
+  {
+    "id": "camisa-x-tretch",
+    "name": "Camisa X-Tretch",
+    "focus": "Entrada e Versatilidade",
+    "attributes": [
+      "Composição: 96% poliéster / 4% elastano",
+      "Excelente custo-benefício",
+      "Versátil para o dia a dia",
+      "Durabilidade e resistência"
+    ]
+  },
+  {
+    "id": "easy-manga-curta",
+    "name": "Camisa Easy Manga Curta",
+    "focus": "Frescor e Praticidade",
+    "attributes": [
+      "Ideal para dias quentes",
+      "Evaporação rápida de suor",
+      "Visual casual e moderno",
+      "Leveza máxima"
+    ]
+  }
+]
