@@ -128,9 +128,9 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
       </div>
 
       <div className={styles.chartsGrid}>
-        <div className={styles.chartContainer}>
+        <div className={styles.chartContainer} style={{ gridColumn: '1 / -1' }}>
           <h3>Comparativo de Métricas</h3>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorElite" x1="0" y1="0" x2="0" y2="1">
@@ -168,7 +168,7 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
                 }}
                 itemStyle={{ color: "var(--text-primary)", fontWeight: 600 }}
               />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={60}>
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
@@ -181,38 +181,6 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-
-        <div className={styles.topListContainer}>
-          <h3>Performance por Criativo</h3>
-          <div className={styles.topList}>
-            {top_criativos.slice(0, 5).map((cr, idx) => {
-              // Buscar criativo real na plataforma
-              const cleanName = cr.nome; // Já vem limpo do parser se implementado lá
-              const platformCr = allPlatformCreatives?.find((pc: any) => 
-                pc.name.toLowerCase().includes(cleanName.toLowerCase()) ||
-                cleanName.toLowerCase().includes(pc.name.toLowerCase())
-              );
-
-              return (
-                <div key={idx} className={styles.topItem} title={cr.originalName || cr.nome}>
-                  <div className={styles.crInfo}>
-                    <span className={styles.crName}>{cr.nome}</span>
-                    {platformCr && (
-                      <div className={styles.realTags}>
-                        <span className={styles.tagBadge}>
-                          {platformCr.hookType || platformCr.format || platformCr.ctaType || "Sem Tag"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <span className={`${styles.crBadge} ${styles[cr.classificacao.toLowerCase()]}`}>
-                    {cr.classificacao}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
     </div>

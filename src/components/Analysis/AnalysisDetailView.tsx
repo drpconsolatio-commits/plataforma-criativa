@@ -58,10 +58,23 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
 
   const structured = analysis?.insights_estruturados;
 
-  // Helper para formatar números com segurança
   const formatNum = (val: any, decimals: number = 2) => {
     const num = Number(val);
     return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
+
+  const cleanName = (n: string) => n.replace(/\[.*?\]\s*/g, '').trim();
+
+  const getMatchedTag = (originalName: string, type: 'hook' | 'format' | 'cta') => {
+    const cleaned = cleanName(originalName);
+    const platformCr = allCreatives?.find((pc: any) => 
+      pc.name.toLowerCase().includes(cleaned.toLowerCase()) ||
+      cleaned.toLowerCase().includes(pc.name.toLowerCase())
+    );
+    if (!platformCr) return null;
+    if (type === 'hook') return platformCr.hookType;
+    if (type === 'format') return platformCr.format;
+    return platformCr.ctaType;
   };
 
   return (
@@ -100,13 +113,19 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 GANCHO (TSR)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['TSR']) || 0) - (Number(a['TSR']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
-                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['TSR'])}%`}>
-                      <span className={styles.rankNum}>{idx + 1}º</span>
-                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
-                      <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
-                    </div>
-                  ))}
+                  {enrichedData.sort((a: any, b: any) => (Number(b['TSR']) || 0) - (Number(a['TSR']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                    const tag = getMatchedTag(cr['Criativo'], 'hook');
+                    return (
+                      <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
+                        <span className={styles.rankNum}>{idx + 1}º</span>
+                        <div className={styles.rankInfo}>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
+                        </div>
+                        <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -129,13 +148,19 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 MEIO (HOLD)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['Retenção']) || 0) - (Number(a['Retenção']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
-                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['Retenção'])}%`}>
-                      <span className={styles.rankNum}>{idx + 1}º</span>
-                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
-                      <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
-                    </div>
-                  ))}
+                  {enrichedData.sort((a: any, b: any) => (Number(b['Retenção']) || 0) - (Number(a['Retenção']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                    const tag = getMatchedTag(cr['Criativo'], 'format');
+                    return (
+                      <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
+                        <span className={styles.rankNum}>{idx + 1}º</span>
+                        <div className={styles.rankInfo}>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
+                        </div>
+                        <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -158,13 +183,19 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 IMPACTO (CTR)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['Impacto']) || 0) - (Number(a['Impacto']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
-                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['Impacto'])}%`}>
-                      <span className={styles.rankNum}>{idx + 1}º</span>
-                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
-                      <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
-                    </div>
-                  ))}
+                  {enrichedData.sort((a: any, b: any) => (Number(b['Impacto']) || 0) - (Number(a['Impacto']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                    const tag = getMatchedTag(cr['Criativo'], 'cta');
+                    return (
+                      <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
+                        <span className={styles.rankNum}>{idx + 1}º</span>
+                        <div className={styles.rankInfo}>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
+                        </div>
+                        <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
