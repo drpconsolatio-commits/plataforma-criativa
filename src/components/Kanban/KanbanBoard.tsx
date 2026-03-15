@@ -331,7 +331,7 @@ export default function KanbanBoard() {
     };
 
     // Salvar no Supabase
-    await supabase.from('campaigns').insert({
+    const { error } = await supabase.from('campaigns').insert({
       id: newCard.id,
       title: newCard.title,
       date: newCard.date,
@@ -340,6 +340,10 @@ export default function KanbanBoard() {
       metadata: result,
       order_index: 0
     });
+
+    if (error) {
+      console.error("Erro ao salvar análise no Supabase:", error);
+    }
 
     // Atualizar estado local
     setColumns(prev => prev.map(col => 
