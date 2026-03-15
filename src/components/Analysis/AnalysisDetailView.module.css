@@ -1,6 +1,6 @@
 .container {
   padding: 32px;
-  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   color: var(--text-primary);
   animation: fadeIn 0.4s ease;
@@ -204,10 +204,12 @@
   overflow: auto;
   max-height: 600px;
   box-shadow: var(--shadow-sm);
+  width: 100%;
 }
 
 .table {
   width: 100%;
+  min-width: 900px; /* Força scroll apenas na tabela */
   border-collapse: collapse;
   font-size: 0.9rem;
   text-align: left;
@@ -311,20 +313,27 @@
 
 .rankingItem {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
   background: var(--bg-raised);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
-  transition: transform var(--transition-fast);
+  transition: all var(--transition-fast);
   cursor: help;
+  width: 100%;
 }
 
 .rankingItem:hover {
-  transform: translateX(4px);
   border-color: var(--accent-primary);
-  background: var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.rankMainRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .rankNum {
@@ -332,23 +341,29 @@
   font-weight: 800;
   color: var(--text-muted);
   width: 24px;
+  flex-shrink: 0;
 }
 
 .rankName {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 0 1 auto;
+  flex: 1;
 }
 
-.rankSeparator {
-  color: var(--text-muted);
-  font-size: 12px;
-  opacity: 0.5;
+.rankVal {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
   flex-shrink: 0;
+}
+
+.rankTagRow {
+  padding-left: 34px; /* rankNum(24) + gap(10) */
+  display: flex;
 }
 
 .realTagBadge {
@@ -358,17 +373,8 @@
   color: var(--text-primary);
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  padding: 2px 8px;
-  border-radius: 99px;
+  padding: 1px 6px;
+  border-radius: 4px;
   white-space: nowrap;
-  flex-shrink: 0;
   box-shadow: var(--shadow-sm);
-}
-
-.rankVal {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-left: auto;
-  flex-shrink: 0;
 }

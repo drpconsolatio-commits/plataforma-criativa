@@ -117,16 +117,16 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     const tag = getMatchedTag(cr['Criativo'], 'hook');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
-                        <span className={styles.rankNum}>{idx + 1}º</span>
-                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        <div className={styles.rankMainRow}>
+                          <span className={styles.rankNum}>{idx + 1}º</span>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
+                        </div>
                         {tag && (
-                          <>
-                            <span className={styles.rankSeparator}>—</span>
+                          <div className={styles.rankTagRow}>
                             <span className={styles.realTagBadge}>{tag}</span>
-                          </>
+                          </div>
                         )}
-                        <span className={styles.rankSeparator}>—</span>
-                        <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
                       </div>
                     );
                   })}
@@ -156,16 +156,16 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     const tag = getMatchedTag(cr['Criativo'], 'format');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
-                        <span className={styles.rankNum}>{idx + 1}º</span>
-                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        <div className={styles.rankMainRow}>
+                          <span className={styles.rankNum}>{idx + 1}º</span>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
+                        </div>
                         {tag && (
-                          <>
-                            <span className={styles.rankSeparator}>—</span>
+                          <div className={styles.rankTagRow}>
                             <span className={styles.realTagBadge}>{tag}</span>
-                          </>
+                          </div>
                         )}
-                        <span className={styles.rankSeparator}>—</span>
-                        <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
                       </div>
                     );
                   })}
@@ -195,16 +195,16 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     const tag = getMatchedTag(cr['Criativo'], 'cta');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
-                        <span className={styles.rankNum}>{idx + 1}º</span>
-                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        <div className={styles.rankMainRow}>
+                          <span className={styles.rankNum}>{idx + 1}º</span>
+                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
+                        </div>
                         {tag && (
-                          <>
-                            <span className={styles.rankSeparator}>—</span>
+                          <div className={styles.rankTagRow}>
                             <span className={styles.realTagBadge}>{tag}</span>
-                          </>
+                          </div>
                         )}
-                        <span className={styles.rankSeparator}>—</span>
-                        <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
                       </div>
                     );
                   })}
