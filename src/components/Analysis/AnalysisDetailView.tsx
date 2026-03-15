@@ -223,7 +223,15 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               retencao_avg: analysis?.performance_metrics?.retencao_avg || 0,
               impacto_avg: analysis?.performance_metrics?.impacto_avg || 0
             }} 
-            top_criativos={analysis?.top_criativos || []} 
+            top_criativos={(analysis?.top_criativos || []).map((c: any) => {
+              const row = enrichedData.find((r: any) => r['Criativo'] === c.nome);
+              return {
+                ...c,
+                tsr: Number(row?.['TSR']) || 0,
+                retencao: Number(row?.['Retenção']) || 0,
+                impacto: Number(row?.['Impacto']) || 0
+              };
+            })} 
             allPlatformCreatives={allCreatives}
           />
         </div>
@@ -265,12 +273,17 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     <tr key={i}>
                       <td className={`${styles.stickyCol} ${styles.tdName}`}>
                         {row?.['Criativo'] || "Anúncio sem nome"}
-                        <span className={styles.campaignLabel}>{row?.['Campanha'] || row?.['Nome da campanha'] || ""}</span>
+                        {row?.['Campanha'] && row?.['Campanha'] !== "[Sem Nome]" && (
+                          <span className={styles.campaignLabel}>{row['Campanha']}</span>
+                        )}
+                        {!row?.['Campanha'] && (row?.['Nome da campanha'] && row?.['Nome da campanha'] !== "[Sem Nome]") && (
+                          <span className={styles.campaignLabel}>{row['Nome da campanha']}</span>
+                        )}
                       </td>
                       <td>{(Number(row?.['Impressões']) || 0).toLocaleString('pt-BR')}</td>
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>R$ {formatNum(row?.['Valor gasto'] || row?.['Valor'], 2).replace('.', ',')}</td>
                       <td className={styles.metricVal}>{Number(row?.['ROAS']) > 0 ? formatNum(row?.['ROAS'], 2).replace('.', ',') + 'x' : '--'}</td>
-                      <td className={styles.metricVal}>
+                      <td className={`${styles.metricVal} ${styles.noWrap}`}>
                         {(() => {
                           const cprVal = Number(row?.['CPR']);
                           const cplVal = Number(row?.['CPL']);
@@ -278,7 +291,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                           return finalCpr > 0 ? 'R$ ' + formatNum(finalCpr, 2).replace('.', ',') : '--';
                         })()}
                       </td>
-                      <td className={styles.metricVal}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
+                      <td className={`${styles.metricVal} ${styles.noWrap}`}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
                       <td className={styles.metricVal}>{formatNum(row?.['TSR'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Retenção'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Impacto'], 2)}%</td>

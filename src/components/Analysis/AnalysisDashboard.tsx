@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
   Cell,
   PieChart,
-  Pie
+  Pie,
+  LabelList
 } from "recharts";
 import styles from "./AnalysisDashboard.module.css";
 
@@ -19,13 +20,14 @@ interface MetricProps {
   label: string;
   value: number;
   unit: string;
-  status: "Elite" | "Bom" | "Ruim";
+  status: "Elite" | "Bom" | "Médio" | "Ruim";
 }
 
 const MetricCard = ({ label, value, unit, status }: MetricProps) => {
   const getStatusColor = () => {
     if (status === "Elite") return "var(--accent-success)";
-    if (status === "Bom") return "var(--accent-warning)";
+    if (status === "Bom") return "var(--accent-primary)";
+    if (status === "Médio") return "var(--accent-warning)";
     return "var(--accent-danger)";
   };
 
@@ -76,33 +78,56 @@ interface DashboardProps {
     nome: string;
     classificacao: string;
     originalName?: string;
+    tsr?: number;
+    retencao?: number;
+    impacto?: number;
   }[];
   allPlatformCreatives?: any[];
 }
 
 export default function AnalysisDashboard({ metrics, top_criativos, allPlatformCreatives }: DashboardProps) {
-  const getStatus = (val: number, type: "tsr" | "retencao" | "impacto"): "Elite" | "Bom" | "Ruim" => {
+  const [selectedCreative, setSelectedCreative] = React.useState("all");
+
+  const getStatus = (val: number, type: "tsr" | "retencao" | "impacto"): "Elite" | "Bom" | "Médio" | "Ruim" => {
     if (type === "tsr") {
       if (val > 35) return "Elite";
       if (val >= 25) return "Bom";
+      if (val >= 15) return "Médio";
       return "Ruim";
     }
     if (type === "retencao") {
       if (val > 50) return "Elite";
       if (val >= 35) return "Bom";
+      if (val >= 20) return "Médio";
       return "Ruim";
     }
-    // Impacto
+    // Impacto (CTR)
     if (val > 2.0) return "Elite";
-    if (val >= 1.0) return "Bom";
+    if (val >= 1.5) return "Bom";
+    if (val >= 0.8) return "Médio";
     return "Ruim";
   };
 
-  const chartData = [
-    { name: "TSR", value: metrics.tsr_avg, status: getStatus(metrics.tsr_avg, "tsr") },
-    { name: "Retenção", value: metrics.retencao_avg, status: getStatus(metrics.retencao_avg, "retencao") },
-    { name: "Impacto", value: metrics.impacto_avg * 10, status: getStatus(metrics.impacto_avg, "impacto") }, // Multiplicado para escala visual
-  ];
+  const getChartData = () => {
+    if (selectedCreative === "all") {
+      return [
+        { name: "TSR", value: metrics.tsr_avg, status: getStatus(metrics.tsr_avg, "tsr") },
+        { name: "Retenção", value: metrics.retencao_avg, status: getStatus(metrics.retencao_avg, "retencao") },
+        { name: "Impacto", value: metrics.impacto_avg, status: getStatus(metrics.impacto_avg, "impacto") },
+      ];
+    }
+
+    const cr = top_criativos.find(c => c.nome === selectedCreative);
+    if (!cr) return [];
+
+    return [
+      { name: "TSR", value: cr.tsr || 0, status: getStatus(cr.tsr || 0, "tsr") },
+      { name: "Retenção", value: cr.retencao || 0, status: getStatus(cr.retencao || 0, "retencao") },
+      { name: "Impacto", value: cr.impacto || 0, status: getStatus(cr.impacto || 0, "impacto") },
+    ];
+  };
+
+  const chartData = getChartData();
 
   return (
     <div className={styles.dashboard}>
@@ -129,7 +154,19 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
 
       <div className={styles.chartsGrid}>
         <div className={styles.chartContainer} style={{ gridColumn: '1 / -1' }}>
-          <h3>Comparativo de Métricas</h3>
+          <div className={styles.chartHeader}>
+            <h3>Comparativo de Métricas</h3>
+            <select 
+              className={styles.creativeSelect}
+              value={selectedCreative}
+              onChange={(e) => setSelectedCreative(e.target.value)}
+            >
+              <option value="all">Média Geral (Todos)</option>
+              {top_criativos.map((c, i) => (
+                <option key={i} value={c.nome}>{c.nome}</option>
+              ))}
+            </select>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
@@ -138,12 +175,16 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorBom" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2}/>
+                </linearGradient>
+                <linearGradient id="colorMedio" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorRuim" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" opacity={0.3} />
@@ -174,10 +215,17 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
                     key={`cell-${index}`} 
                     fill={
                       entry.status === "Elite" ? "url(#colorElite)" : 
-                      entry.status === "Bom" ? "url(#colorBom)" : "url(#colorRuim)"
+                      entry.status === "Bom" ? "url(#colorBom)" : 
+                      entry.status === "Médio" ? "url(#colorMedio)" : "url(#colorRuim)"
                     } 
                   />
                 ))}
+                <LabelList 
+                  dataKey="value" 
+                  position="top" 
+                  formatter={(v: any) => `${Number(v).toFixed(2)}%`}
+                  style={{ fill: 'var(--text-primary)', fontSize: '12px', fontWeight: 'bold' }}
+                />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
