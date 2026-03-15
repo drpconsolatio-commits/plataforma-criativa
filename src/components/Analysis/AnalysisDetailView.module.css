@@ -279,3 +279,68 @@
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
+
+.noWrap {
+  white-space: nowrap !important;
+}
+
+/* Rankings inside insight cards */
+.rankingSection {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rankingTitle {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.rankingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  cursor: help;
+}
+
+.rankingItem:hover {
+  background: var(--border-subtle);
+}
+
+.rankNum {
+  font-weight: 800;
+  color: var(--accent-primary);
+  min-width: 24px;
+}
+
+.rankName {
+  flex: 1;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankVal {
+  font-weight: 700;
+  color: var(--text-primary);
+}

@@ -77,7 +77,7 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
       </div>
 
       <div className={styles.content}>
-        {/* Bloco 1: 3 Cards de Insights com Blindagem Local */}
+        {/* Bloco 1: 3 Cards de Insights com Rankings */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Insights Estratégicos por Fase</h2>
           <div className={styles.insightsGrid}>
@@ -95,8 +95,18 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
               <p className={styles.insightText}>
                 {structured?.hook?.analise || "Análise de retenção inicial não disponível."}
               </p>
-              <div className={styles.verdictBox}>
-                <strong>VEREDITO:</strong> {structured?.hook?.veredito || "Verificar criativos individualmente."}
+              
+              <div className={styles.rankingSection}>
+                <h4 className={styles.rankingTitle}>TOP 3 GANCHO (TSR)</h4>
+                <div className={styles.rankingList}>
+                  {enrichedData.sort((a: any, b: any) => (Number(b['TSR']) || 0) - (Number(a['TSR']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
+                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['TSR'])}%`}>
+                      <span className={styles.rankNum}>{idx + 1}º</span>
+                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
+                      <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -114,8 +124,18 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
               <p className={styles.insightText}>
                 {structured?.retencao?.analise || "Análise de estruturação do vídeo não disponível."}
               </p>
-              <div className={styles.verdictBox}>
-                <strong>VEREDITO:</strong> {structured?.retencao?.veredito || "Ajustar ângulo e formato conforme ROI."}
+
+              <div className={styles.rankingSection}>
+                <h4 className={styles.rankingTitle}>TOP 3 MEIO (HOLD)</h4>
+                <div className={styles.rankingList}>
+                  {enrichedData.sort((a: any, b: any) => (Number(b['Retenção']) || 0) - (Number(a['Retenção']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
+                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['Retenção'])}%`}>
+                      <span className={styles.rankNum}>{idx + 1}º</span>
+                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
+                      <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -133,8 +153,18 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
               <p className={styles.insightText}>
                 {structured?.cta?.analise || "Análise de fechamento e CTAs não disponível."}
               </p>
-              <div className={styles.verdictBox}>
-                <strong>VEREDITO:</strong> {structured?.cta?.veredito || "Testar variações de oferta no final."}
+
+              <div className={styles.rankingSection}>
+                <h4 className={styles.rankingTitle}>TOP 3 IMPACTO (CTR)</h4>
+                <div className={styles.rankingList}>
+                  {enrichedData.sort((a: any, b: any) => (Number(b['Impacto']) || 0) - (Number(a['Impacto']) || 0)).slice(0, 3).map((cr: any, idx: number) => (
+                    <div key={idx} className={styles.rankingItem} title={`${cr['Criativo']} - ${formatNum(cr['Impacto'])}%`}>
+                      <span className={styles.rankNum}>{idx + 1}º</span>
+                      <span className={styles.rankName}>{String(cr['Criativo']).length > 20 ? String(cr['Criativo']).slice(0, 17) + '...' : cr['Criativo']}</span>
+                      <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -174,10 +204,12 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
               <thead>
                 <tr>
                   <th className={styles.stickyCol}>Criativo</th>
-                  <th>Alcance</th>
                   <th>Impressões</th>
                   <th>Valor</th>
                   <th>ROAS</th>
+                  <th>CPR</th>
+                  <th>CPS</th>
+                  <th>CPL</th>
                   <th>TSR</th>
                   <th>Retenção</th>
                   <th>Impacto</th>
@@ -191,10 +223,12 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
                         {row?.['Criativo'] || "Anúncio sem nome"}
                         <span className={styles.campaignLabel}>{row?.['Campanha'] || row?.['Nome da campanha'] || ""}</span>
                       </td>
-                      <td>{(Number(row?.['Alcance']) || 0).toLocaleString('pt-BR')}</td>
                       <td>{(Number(row?.['Impressões']) || 0).toLocaleString('pt-BR')}</td>
-                      <td className={styles.metricVal}>R$ {formatNum(row?.['Valor gasto'] || row?.['Valor'], 2).replace('.', ',')}</td>
-                      <td className={styles.metricVal}>{formatNum(row?.['ROAS'], 2).replace('.', ',')}x</td>
+                      <td className={`${styles.metricVal} ${styles.noWrap}`}>R$ {formatNum(row?.['Valor gasto'] || row?.['Valor'], 2).replace('.', ',')}</td>
+                      <td className={styles.metricVal}>{Number(row?.['ROAS']) > 0 ? formatNum(row?.['ROAS'], 2).replace('.', ',') + 'x' : '--'}</td>
+                      <td className={styles.metricVal}>{Number(row?.['CPR']) > 0 ? 'R$ ' + formatNum(row?.['CPR'], 2).replace('.', ',') : '--'}</td>
+                      <td className={styles.metricVal}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
+                      <td className={styles.metricVal}>{Number(row?.['CPL']) > 0 ? 'R$ ' + formatNum(row?.['CPL'], 2).replace('.', ',') : '--'}</td>
                       <td className={styles.metricVal}>{formatNum(row?.['TSR'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Retenção'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Impacto'], 2)}%</td>

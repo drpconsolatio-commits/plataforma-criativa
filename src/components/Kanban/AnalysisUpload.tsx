@@ -64,6 +64,9 @@ export default function AnalysisUpload({ onAnalysisComplete }: AnalysisUploadPro
             const ctaRate = parseFloat(String(getVal(['cta_rate', 'impacto', 'outbound ctr']))) * 100;
             const spend = parseFloat(String(getVal(['spend', 'valor gasto', 'valor', 'spent'])));
             const roas = parseFloat(String(getVal(['roas', 'retorno'])));
+            const cpr = parseFloat(String(getVal(['cpr', 'cost per registration', 'custo por registro'])));
+            const cps = parseFloat(String(getVal(['cps', 'cost per sale', 'custo por venda'])));
+            const cpl = parseFloat(String(getVal(['cpl', 'cost per lead', 'custo por lead'])));
             const alc = parseInt(String(getVal(['alcance', 'reach']))) || 0;
             const imp = parseInt(String(getVal(['impressões', 'impressoes', 'impressions']))) || 0;
             const adName = getName(['nome_anuncio', 'criativo', 'nome do anúncio', 'ad name']);
@@ -76,6 +79,9 @@ export default function AnalysisUpload({ onAnalysisComplete }: AnalysisUploadPro
               'Impacto': ctaRate,
               'Valor gasto': spend,
               'ROAS': roas,
+              'CPR': cpr,
+              'CPS': cps,
+              'CPL': cpl,
               'Alcance': alc,
               'Impressões': imp,
               'Nome da campanha': getName(['nome_campanha', 'campanha', 'campaign']),

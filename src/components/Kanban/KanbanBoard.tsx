@@ -318,14 +318,14 @@ export default function KanbanBoard() {
   }, []);
 
   const handleAnalysisComplete = async (result: any) => {
-    const campaignName = result.detectedCampaignName || "Análise Geral";
+    const campaignName = result.detectedCampaignName || "Geral";
     const now = new Date();
     const formattedDate = now.toLocaleDateString('pt-BR');
     const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const newCard: CampaignCard = {
       id: crypto.randomUUID(),
-      title: `[${campaignName}] - ${formattedDate} ${formattedTime}`,
+      title: `[Análise] ${campaignName} - ${formattedDate} ${formattedTime}`,
       date: formattedDate,
       checklist: { roteirizacao: false, edicao: false },
       creatives: [],
