@@ -87,7 +87,6 @@ interface DashboardProps {
 }
 
 export default function AnalysisDashboard({ metrics, top_criativos, allPlatformCreatives }: DashboardProps) {
-  const [searchTerm, setSearchTerm] = React.useState("");
 
   const getStatus = (val: number, type: "tsr" | "retencao" | "impacto"): "Elite" | "Bom" | "Médio" | "Ruim" => {
     if (type === "tsr") {
@@ -110,34 +109,15 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
   };
 
   const getChartData = () => {
-    const term = searchTerm.trim().toLowerCase();
-    
     // Helper to fix impact scale if needed
     const fixImp = (v: number) => v > 50 ? v / 10 : v;
 
-    if (!term) {
-      return [{
-        name: "Média Geral",
-        tsr: metrics.tsr_avg,
-        retencao: metrics.retencao_avg,
-        impacto: fixImp(metrics.impacto_avg)
-      }];
-    }
-
-    const matches = top_criativos.filter(c => 
-      c.nome.toLowerCase().includes(term) || 
-      (c.originalName && c.originalName.toLowerCase().includes(term))
-    );
-
-    if (matches.length === 0) return [];
-
-    return matches.map(c => ({
-      name: c.nome.length > 20 ? c.nome.substring(0, 17) + "..." : c.nome,
-      fullName: c.nome,
-      tsr: c.tsr || 0,
-      retencao: c.retencao || 0,
-      impacto: fixImp(c.impacto || 0)
-    }));
+    return [{
+      name: "Média Geral",
+      tsr: metrics.tsr_avg,
+      retencao: metrics.retencao_avg,
+      impacto: fixImp(metrics.impacto_avg)
+    }];
   };
 
   const chartData = getChartData();
@@ -169,18 +149,14 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
         <div className={styles.chartContainer} style={{ gridColumn: '1 / -1' }}>
           <div className={styles.chartHeader}>
             <h3>Comparativos de Métricas</h3>
-            <div className={styles.searchBox}>
-              <input 
-                type="text" 
-                className={styles.chartSearch}
-                placeholder="Buscar criativo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
           </div>
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+            <BarChart 
+              data={chartData} 
+              margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+              barGap={12}
+              barCategoryGap="25%"
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" opacity={0.3} />
               <XAxis 
                 dataKey="name" 
@@ -202,15 +178,9 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
                 }}
               />
               <Legend verticalAlign="top" height={36}/>
-              <Bar name="Hook Rate (TSR)" dataKey="tsr" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={25}>
-                <LabelList dataKey="tsr" position="top" formatter={(v: any) => `${Number(v).toFixed(1)}%`} style={{ fill: '#3b82f6', fontSize: '11px', fontWeight: 'bold' }} />
-              </Bar>
-              <Bar name="Hold Rate (RET)" dataKey="retencao" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={25}>
-                <LabelList dataKey="retencao" position="top" formatter={(v: any) => `${Number(v).toFixed(1)}%`} style={{ fill: '#8b5cf6', fontSize: '11px', fontWeight: 'bold' }} />
-              </Bar>
-              <Bar name="CTA Rate (IMP)" dataKey="impacto" fill="#d946ef" radius={[4, 4, 0, 0]} barSize={25}>
-                <LabelList dataKey="impacto" position="top" formatter={(v: any) => `${Number(v).toFixed(1)}%`} style={{ fill: '#d946ef', fontSize: '11px', fontWeight: 'bold' }} />
-              </Bar>
+              <Bar name="Hook Rate (TSR)" dataKey="tsr" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={32} />
+              <Bar name="Hold Rate (RET)" dataKey="retencao" fill="#8b5cf6" radius={[8, 8, 0, 0]} barSize={32} />
+              <Bar name="CTA Rate (IMP)" dataKey="impacto" fill="#d946ef" radius={[8, 8, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </div>
