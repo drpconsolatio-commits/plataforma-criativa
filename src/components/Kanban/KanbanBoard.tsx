@@ -275,7 +275,9 @@ export default function KanbanBoard() {
           checklist_roteirizacao: card.checklist.roteirizacao,
           checklist_edicao: card.checklist.edicao,
           labels: card.labels,
-          order_index: idx
+          order_index: idx,
+          is_analysis: card.is_analysis || false,
+          metadata: card.metadata || {},
         });
 
         card.creatives.forEach((cr) => {
