@@ -326,7 +326,7 @@ export default function KanbanBoard() {
 
     const newCard: CampaignCard = {
       id: crypto.randomUUID(),
-      title: `[Análise] ${sourceTitle} - ${formattedDate} ${formattedTime}`,
+      title: `Análise Meta Ads - ${formattedDate} ${formattedTime}`,
       date: formattedDate,
       checklist: { roteirizacao: false, edicao: false },
       creatives: [],

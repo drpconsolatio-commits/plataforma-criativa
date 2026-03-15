@@ -1,19 +1,15 @@
 .card {
-  background: var(--bg-surface);
+  background: var(--bg-raised);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  border-radius: var(--radius-md);
+  padding: 14px;
   transition: all var(--transition-fast);
   cursor: default;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
-  border-color: var(--accent-primary);
+  border-color: var(--border-default);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
@@ -23,6 +19,7 @@
   box-shadow: 0 0 0 1px var(--accent-primary-glow);
 }
 
+/* Top right: menu + drag handle */
 .topRight {
   position: absolute;
   top: 8px;
@@ -30,6 +27,13 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  z-index: 3;
+}
+
+.card:hover .topRight {
+  opacity: 1;
 }
 
 .menuBtn {
@@ -37,8 +41,193 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
+  padding: 4px 6px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.menuBtn:hover {
+  background: var(--glass-hover);
+  color: var(--text-primary);
+}
+
+.dragHandle {
+  cursor: grab;
   padding: 4px;
   border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.dragHandle:hover {
+  background: var(--glass-hover);
+  color: var(--text-secondary);
+}
+
+.gripIcon {
+  font-size: 14px;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+/* Context menu */
+.contextMenu {
+  position: absolute;
+  top: 32px;
+  right: 8px;
+  z-index: 10;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  min-width: 170px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 150ms ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: var(--glass-hover);
+  color: var(--text-primary);
+}
+
+.menuDanger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--accent-error);
+}
+
+/* Labels */
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.labelRemove {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color var(--transition-fast);
+}
+
+.labelRemove:hover {
+  color: #fff;
+}
+
+/* Label input row */
+.labelInputRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.labelInput {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.labelInput:focus {
+  border-color: var(--accent-primary);
+}
+
+.colorPicker {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.colorDot:hover {
+  transform: scale(1.2);
+}
+
+.colorSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px var(--bg-surface);
+}
+
+.labelActions {
+  display: flex;
+  gap: 4px;
+}
+
+.labelConfirm,
+.labelCancel {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.labelConfirm {
+  color: var(--accent-success);
+  border-color: var(--accent-success);
+}
+
+.labelConfirm:hover,
+.labelCancel:hover {
+  background: var(--glass-hover);
 }
 
 .cardHeader {
@@ -46,21 +235,134 @@
 }
 
 .date {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-  margin-bottom: 4px;
-  display: block;
 }
 
 .cardTitle {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.2px;
   margin: 0;
-  line-height: 1.4;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.titleInput {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-primary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--bg-raised);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  margin-top: 4px;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metricLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.metricValue {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.elite { color: var(--accent-success); }
+.bom { color: var(--accent-warning); }
+.ruim { color: var(--accent-danger); }
+
+.cardHeader {
+  cursor: pointer;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  margin: 0;
+  flex: 1;
+}
+
+.editTitleBtn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+  padding: 4px;
+}
+
+.editTitleBtn:hover {
+  color: var(--accent-primary);
+}
+
+.titleWrapper:hover .editTitleBtn {
+  opacity: 1;
+}
+
+.titleInput {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-primary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  margin-bottom: 12px;
 }
 
 .metricsGrid {
@@ -100,7 +402,7 @@
 .expandHint {
   border-top: 1px solid var(--border-subtle);
   padding-top: 10px;
-  margin-top: 4px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -108,9 +410,14 @@
 
 .hintText {
   font-size: 11px;
-  color: var(--accent-primary);
-  font-weight: 700;
+  color: var(--text-muted);
+  font-weight: 500;
   cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.hintText:hover {
+  color: var(--accent-primary);
 }
 
 .aiBadge {
