@@ -32,7 +32,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -41,6 +42,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.headerAction {
+  display: flex;
+  align-items: center;
 }
 
 .colorDot {

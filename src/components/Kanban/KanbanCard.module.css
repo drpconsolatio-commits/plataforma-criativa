@@ -332,8 +332,32 @@
 .progressArea {
   display: flex;
   align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.analysisMeta {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-top: 12px;
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.analysisIcon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 .progressBar {

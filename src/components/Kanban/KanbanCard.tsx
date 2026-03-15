@@ -5,7 +5,7 @@ import type { CampaignCard, Checklist, Label } from "./KanbanBoard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState, useRef, useEffect } from "react";
-import { Pin, MoreVertical, GripVertical, Tag, Edit2, Trash2, X, Check } from "lucide-react";
+import { Pin, MoreVertical, GripVertical, Tag, Edit2, Trash2, X, Check, BarChart3, Binary } from "lucide-react";
 
 const LABEL_COLORS = [
   "#7c5cfc", "#38bdf8", "#34d399", "#fbbf24", "#f472b6",
@@ -256,51 +256,62 @@ export default function KanbanCard({
             </button>
           </div>
         )}
-
-        {/* Progress bar */}
-        <div className={styles.progressArea}>
-          <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress}%`, background: colorVar }}
-            />
-          </div>
-          <span className={styles.progressText}>
-            {doneCount}/{card.creatives.length}
-          </span>
-        </div>
-      </div>
-
-      {/* Checklist Master — only Roteirização + Edição */}
-      <div className={styles.checklist}>
-        {checklistItems.map((item) => (
-          <label
-            key={item.key}
-            className={`${styles.checkItem} ${
-              card.checklist[item.key] ? styles.checkDone : ""
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="checkbox"
-              checked={card.checklist[item.key]}
-              onChange={(e) =>
-                onUpdateChecklist?.(card.id, item.key, e.target.checked)
-              }
-              className={styles.checkInput}
-            />
-            <span className={styles.checkBox}>
-              {card.checklist[item.key] ? <Check size={14} /> : ""}
+ 
+        {!card.is_analysis && (
+          /* Progress bar */
+          <div className={styles.progressArea}>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${progress}%`, background: colorVar }}
+              />
+            </div>
+            <span className={styles.progressText}>
+              {doneCount}/{card.creatives.length}
             </span>
-            <span className={styles.checkLabel}>{item.label}</span>
-          </label>
-        ))}
+          </div>
+        )}
+        
+        {card.is_analysis && (
+          <div className={styles.analysisMeta}>
+            <BarChart3 size={14} className={styles.analysisIcon} />
+            <span>Resultado da IA Disponível</span>
+          </div>
+        )}
       </div>
+
+  {/* Checklist Master — only Roteirização + Edição */}
+  {!card.is_analysis && (
+    <div className={styles.checklist}>
+      {checklistItems.map((item) => (
+        <label
+          key={item.key}
+          className={`${styles.checkItem} ${
+            card.checklist[item.key] ? styles.checkDone : ""
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={card.checklist[item.key]}
+            onChange={(e) =>
+              onUpdateChecklist?.(card.id, item.key, e.target.checked)
+            }
+            className={styles.checkInput}
+          />
+          <span className={styles.checkBox}>
+            {card.checklist[item.key] ? <Check size={14} /> : ""}
+          </span>
+          <span className={styles.checkLabel}>{item.label}</span>
+        </label>
+      ))}
+    </div>
+  )}
 
       {/* Open hint */}
       <div className={styles.expandHint}>
         <span className={styles.hintText} onClick={onOpenFullscreen}>
-          Abrir planilha →
+          {card.is_analysis ? "Ver Análise IA →" : "Abrir Campanha →"}
         </span>
       </div>
     </div>
