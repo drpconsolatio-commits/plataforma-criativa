@@ -112,12 +112,29 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
     // Helper to fix impact scale if needed
     const fixImp = (v: number) => v > 50 ? v / 10 : v;
 
-    return [{
-      name: "Média Geral",
-      tsr: metrics.tsr_avg,
-      retencao: metrics.retencao_avg,
-      impacto: fixImp(metrics.impacto_avg)
-    }];
+    return [
+      { 
+        name: "Hook Rate", 
+        shortName: "TSR",
+        value: metrics.tsr_avg, 
+        color: "#3b82f6",
+        gradId: "gradTsr"
+      },
+      { 
+        name: "Hold Rate", 
+        shortName: "RET",
+        value: metrics.retencao_avg, 
+        color: "#8b5cf6",
+        gradId: "gradRet"
+      },
+      { 
+        name: "CTA Rate", 
+        shortName: "IMP",
+        value: fixImp(metrics.impacto_avg), 
+        color: "#d946ef",
+        gradId: "gradImp"
+      }
+    ];
   };
 
   const chartData = getChartData();
@@ -147,40 +164,83 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
 
       <div className={styles.chartsGrid}>
         <div className={styles.chartContainer} style={{ gridColumn: '1 / -1' }}>
-          <div className={styles.chartHeader}>
-            <h3>Comparativos de Métricas</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={350}>
             <BarChart 
               data={chartData} 
-              margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
-              barGap={12}
-              barCategoryGap="25%"
+              margin={{ top: 40, right: 40, left: 40, bottom: 40 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" opacity={0.3} />
+              <defs>
+                <linearGradient id="gradTsr" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#60a5fa" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#2563eb" stopOpacity={1}/>
+                </linearGradient>
+                <linearGradient id="gradRet" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#a78bfa" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#7c3aed" stopOpacity={1}/>
+                </linearGradient>
+                <linearGradient id="gradImp" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#e879f9" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#c026d3" stopOpacity={1}/>
+                </linearGradient>
+                <filter id="shadow" height="130%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                  <feOffset dx="0" dy="4" result="offsetblur" />
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.3" />
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" opacity={0.1} />
               <XAxis 
                 dataKey="name" 
                 stroke="var(--text-secondary)" 
-                fontSize={12} 
+                fontSize={13} 
+                fontWeight={600}
                 tickLine={false} 
                 axisLine={false}
-                dy={10}
+                dy={15}
               />
-              <YAxis hide domain={[0, 'dataMax + 10']} />
+              <YAxis hide domain={[0, 'dataMax + 15']} />
               <Tooltip 
-                cursor={{ fill: 'var(--bg-raised)', opacity: 0.1 }}
+                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                 contentStyle={{ 
                   background: "var(--bg-surface)", 
                   border: "1px solid var(--border-subtle)", 
-                  borderRadius: "var(--radius-md)",
-                  boxShadow: "var(--shadow-lg)",
-                  padding: "12px"
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                  padding: "12px",
+                  backdropFilter: "blur(8px)"
                 }}
               />
-              <Legend verticalAlign="top" height={36}/>
-              <Bar name="Hook Rate (TSR)" dataKey="tsr" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={32} />
-              <Bar name="Hold Rate (RET)" dataKey="retencao" fill="#8b5cf6" radius={[8, 8, 0, 0]} barSize={32} />
-              <Bar name="CTA Rate (IMP)" dataKey="impacto" fill="#d946ef" radius={[8, 8, 0, 0]} barSize={32} />
+              <Bar 
+                dataKey="value" 
+                radius={[12, 12, 12, 12]} 
+                barSize={80}
+              >
+                {chartData.map((entry: any, index: number) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={`url(#${entry.gradId})`}
+                    filter="url(#shadow)"
+                  />
+                ))}
+                <LabelList 
+                  dataKey="value" 
+                  position="top" 
+                  offset={15}
+                  formatter={(v: any) => `${Number(v).toFixed(1)}%`}
+                  style={{ 
+                    fill: 'var(--text-primary)', 
+                    fontSize: '15px', 
+                    fontWeight: '800',
+                    fontFamily: 'Inter, sans-serif'
+                  }} 
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
