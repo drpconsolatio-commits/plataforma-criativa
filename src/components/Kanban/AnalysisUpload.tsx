@@ -59,6 +59,10 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
               return "Sem Nome";
             };
 
+            const cleanCreativeName = (name: string) => {
+              return name.replace(/\[.*?\]\s*/g, '').trim();
+            };
+
             // Mapeamento Técnico Novo com multiplicador de porcentagem (ex: 0.18 -> 18.0)
             const hookRate = parseFloat(String(getVal(['hook_rate', 'tsr', 'thumb stop rate']))) * 100;
             const holdRate = parseFloat(String(getVal(['hold_rate', 'retenção', 'retenção média']))) * 100;
@@ -75,6 +79,7 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
             return {
               ...row,
               'Criativo': adName,
+              'Criativo Limpo': cleanCreativeName(adName),
               'TSR': hookRate,
               'Retenção': holdRate,
               'Impacto': ctaRate,

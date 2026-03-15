@@ -9,9 +9,10 @@ import type { CampaignCard } from "../Kanban/KanbanBoard";
 interface AnalysisDetailViewProps {
   card: CampaignCard & { metadata: any };
   onBack: () => void;
+  allCreatives?: any[];
 }
 
-export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewProps) {
+export default function AnalysisDetailView({ card, onBack, allCreatives }: AnalysisDetailViewProps) {
   const [filter, setFilter] = useState("");
 
   // Memoize metadata access to prevent crashes if metadata is missing
@@ -180,6 +181,7 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
               impacto_avg: analysis?.performance_metrics?.impacto_avg || 0
             }} 
             top_criativos={analysis?.top_criativos || []} 
+            allPlatformCreatives={allCreatives}
           />
         </div>
 

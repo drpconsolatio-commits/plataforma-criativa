@@ -1083,10 +1083,12 @@ export default function KanbanBoard() {
   /* ---- CAMPAIGN DETAIL VIEW ---- */
   if (activeView.type === "campaign") {
     if (activeView.card.is_analysis) {
+      const allCreatives = columns.flatMap(col => col.cards.flatMap(card => card.creatives || []));
       return (
         <AnalysisDetailView 
           card={activeView.card as any} 
           onBack={closeCampaign} 
+          allCreatives={allCreatives}
         />
       );
     }

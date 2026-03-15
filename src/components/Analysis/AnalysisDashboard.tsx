@@ -75,10 +75,12 @@ interface DashboardProps {
   top_criativos: {
     nome: string;
     classificacao: string;
+    originalName?: string;
   }[];
+  allPlatformCreatives?: any[];
 }
 
-export default function AnalysisDashboard({ metrics, top_criativos }: DashboardProps) {
+export default function AnalysisDashboard({ metrics, top_criativos, allPlatformCreatives }: DashboardProps) {
   const getStatus = (val: number, type: "tsr" | "retencao" | "impacto"): "Elite" | "Bom" | "Ruim" => {
     if (type === "tsr") {
       if (val > 35) return "Elite";
@@ -184,14 +186,32 @@ export default function AnalysisDashboard({ metrics, top_criativos }: DashboardP
         <div className={styles.topListContainer}>
           <h3>Performance por Criativo</h3>
           <div className={styles.topList}>
-            {top_criativos.slice(0, 5).map((cr, idx) => (
-              <div key={idx} className={styles.topItem}>
-                <span className={styles.crName}>{cr.nome}</span>
-                <span className={`${styles.crBadge} ${styles[cr.classificacao.toLowerCase()]}`}>
-                  {cr.classificacao}
-                </span>
-              </div>
-            ))}
+            {top_criativos.slice(0, 5).map((cr, idx) => {
+              // Buscar criativo real na plataforma
+              const cleanName = cr.nome; // Já vem limpo do parser se implementado lá
+              const platformCr = allPlatformCreatives?.find((pc: any) => 
+                pc.name.toLowerCase().includes(cleanName.toLowerCase()) ||
+                cleanName.toLowerCase().includes(pc.name.toLowerCase())
+              );
+
+              return (
+                <div key={idx} className={styles.topItem} title={cr.originalName || cr.nome}>
+                  <div className={styles.crInfo}>
+                    <span className={styles.crName}>{cr.nome}</span>
+                    {platformCr && (
+                      <div className={styles.realTags}>
+                        <span className={styles.tagBadge}>
+                          {platformCr.hookType || platformCr.format || platformCr.ctaType || "Sem Tag"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className={`${styles.crBadge} ${styles[cr.classificacao.toLowerCase()]}`}>
+                    {cr.classificacao}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
