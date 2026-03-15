@@ -110,7 +110,33 @@ export async function POST(req: Request) {
       };
     });
 
-    const systemPrompt = `Você é um Analista Estratégico. Analise o funil de performance (Hook, Meio, CTA). No insight de Retenção, cite Ângulo e Formato. No CTA, analise o impacto no CTR.`;
+    const systemPrompt = `Você é um Analista Estratégico de Marketing Digital. Sua tarefa é analisar o funil de performance de criativos com ESTANQUEIDADE TOTAL entre as fases.
+
+REGRAS DE ANÁLISE (ESTRITAMENTE PROIBIDO CRUZAR AS FASES):
+
+1. FASE HOOK (GANCHO):
+   - Métrica: Analise exclusivamente o 'TSR' (Thumb Stop Rate).
+   - Relacionamento: Relacione o TSR com o 'Tipo de Hook'.
+   - Restrição: Proibido citar impacto, retenção ou CTA nesta seção. Foque em como o gancho captura a atenção.
+
+2. FASE MEIO (RETENÇÃO):
+   - Métrica: Analise exclusivamente o 'Ret' (Hold Rate / Retenção).
+   - Relacionamento: Relacione a retenção com 'Ângulo' e 'Formato'.
+   - Restrição: Remova qualquer menção ao termo 'GENÉRICO' desta fase; se não houver tag, foque na estrutura visual. Proibido citar TSR ou CTR aqui.
+
+3. FASE CTA (CONVERSÃO/IMPACTO):
+   - Métrica: Analise exclusivamente o 'Imp' (Impacto / CTR).
+   - Relacionamento: Relacione o impacto com o 'Tipo de CTA'.
+   - Regra Especial: Trate rótulos 'GENÉRICO' vindos do banco de dados como 'CTA SUAVE' (soft call to action).
+   - Restrição: Proibido citar TSR ou Retenção nesta seção.
+
+PADRONIZAÇÃO DE STATUS:
+Use rigorosamente estes rótulos para classificações:
+- ELITE: Para métricas muito acima do benchmark.
+- BOM: Para métricas dentro do esperado.
+- RUIM: Para métricas abaixo do benchmark.
+
+O 'resumo_textual' deve ser um parágrafo executivo que sintetiza a performance geral sem repetir dados técnicos brutos.`;
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { responseMimeType: "application/json", responseSchema } });
 
     const aiInput = enrichedData.map(d => ({
@@ -121,7 +147,19 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent([{ text: systemPrompt }, { text: JSON.stringify(aiInput) }]);
     const parsed = JSON.parse(result.response.text());
-    parsed.performance_metrics = { tsr_avg, retencao_avg, impacto_avg };
+    parsed.performance_metrics = { 
+      tsr_avg: Number(tsr_avg.toFixed(2)), 
+      retencao_avg: Number(retencao_avg.toFixed(2)), 
+      impacto_avg: Number(impacto_avg.toFixed(2)) 
+    };
+
+    // Padronizar classificações vindas da IA para garantir consistência visual
+    if (parsed.top_criativos) {
+      parsed.top_criativos = parsed.top_criativos.map((cr: any) => ({
+        ...cr,
+        classificacao: cr.classificacao.charAt(0).toUpperCase() + cr.classificacao.slice(1).toLowerCase()
+      }));
+    }
 
     return new Response(JSON.stringify({ analysis: parsed, enrichedData }), { status: 200 });
 

@@ -155,6 +155,7 @@ export default function AnalysisDashboard({ metrics, top_criativos }: DashboardP
               />
               <YAxis hide />
               <Tooltip 
+                formatter={(value: number) => [`${value.toFixed(2)}%`, "Valor"]}
                 cursor={{ fill: 'var(--bg-raised)', opacity: 0.4 }}
                 contentStyle={{ 
                   background: "var(--bg-surface)", 
