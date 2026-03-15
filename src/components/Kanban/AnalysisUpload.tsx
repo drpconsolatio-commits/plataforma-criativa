@@ -100,7 +100,13 @@ export default function AnalysisUpload({ onAnalysisComplete }: AnalysisUploadPro
           }
 
           setStatus('done');
-          onAnalysisComplete(resultData);
+          
+          // Capturar o nome da campanha do primeiro registro do CSV
+          const detectedCampaignName = transformedData[0]?.['Nome da campanha'] || 
+                                     transformedData[0]?.['Nome do conjunto de anúncios'] || 
+                                     null;
+          
+          onAnalysisComplete({ ...resultData, detectedCampaignName });
           
           setTimeout(() => {
             setStatus('idle');

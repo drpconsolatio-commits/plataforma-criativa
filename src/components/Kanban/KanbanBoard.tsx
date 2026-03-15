@@ -318,10 +318,15 @@ export default function KanbanBoard() {
   }, []);
 
   const handleAnalysisComplete = async (result: any) => {
+    const campaignName = result.detectedCampaignName || "Análise Geral";
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('pt-BR');
+    const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
     const newCard: CampaignCard = {
       id: crypto.randomUUID(),
-      title: `Análise Meta Ads - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-      date: new Date().toLocaleDateString('pt-BR'),
+      title: `[${campaignName}] - ${formattedDate} ${formattedTime}`,
+      date: formattedDate,
       checklist: { roteirizacao: false, edicao: false },
       creatives: [],
       pinned: false,
