@@ -258,6 +258,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                 <tr>
                   <th className={styles.stickyCol}>Criativo</th>
                   <th>Impressões</th>
+                  <th>Alcance</th>
                   <th>Valor</th>
                   <th>ROAS</th>
                   <th>CPR</th>
@@ -273,14 +274,9 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     <tr key={i}>
                       <td className={`${styles.stickyCol} ${styles.tdName}`}>
                         {row?.['Criativo'] || "Anúncio sem nome"}
-                        {row?.['Campanha'] && row?.['Campanha'] !== "[Sem Nome]" && (
-                          <span className={styles.campaignLabel}>{row['Campanha']}</span>
-                        )}
-                        {!row?.['Campanha'] && (row?.['Nome da campanha'] && row?.['Nome da campanha'] !== "[Sem Nome]") && (
-                          <span className={styles.campaignLabel}>{row['Nome da campanha']}</span>
-                        )}
                       </td>
                       <td>{(Number(row?.['Impressões']) || 0).toLocaleString('pt-BR')}</td>
+                      <td>{(Number(row?.['Alcance'] || row?.['alcance']) || 0).toLocaleString('pt-BR')}</td>
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>R$ {formatNum(row?.['Valor gasto'] || row?.['Valor'], 2).replace('.', ',')}</td>
                       <td className={styles.metricVal}>{Number(row?.['ROAS']) > 0 ? formatNum(row?.['ROAS'], 2).replace('.', ',') + 'x' : '--'}</td>
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>

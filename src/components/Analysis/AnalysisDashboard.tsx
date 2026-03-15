@@ -86,7 +86,7 @@ interface DashboardProps {
 }
 
 export default function AnalysisDashboard({ metrics, top_criativos, allPlatformCreatives }: DashboardProps) {
-  const [selectedCreative, setSelectedCreative] = React.useState("all");
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   const getStatus = (val: number, type: "tsr" | "retencao" | "impacto"): "Elite" | "Bom" | "Médio" | "Ruim" => {
     if (type === "tsr") {
@@ -109,7 +109,8 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
   };
 
   const getChartData = () => {
-    if (selectedCreative === "all") {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
       return [
         { name: "TSR", value: metrics.tsr_avg, status: getStatus(metrics.tsr_avg, "tsr") },
         { name: "Retenção", value: metrics.retencao_avg, status: getStatus(metrics.retencao_avg, "retencao") },
@@ -117,8 +118,14 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
       ];
     }
 
-    const cr = top_criativos.find(c => c.nome === selectedCreative);
-    if (!cr) return [];
+    const cr = top_criativos.find(c => c.nome.toLowerCase().includes(term));
+    if (!cr) {
+      return [
+        { name: "TSR", value: 0, status: "Ruim" },
+        { name: "Retenção", value: 0, status: "Ruim" },
+        { name: "Impacto", value: 0, status: "Ruim" },
+      ];
+    }
 
     return [
       { name: "TSR", value: cr.tsr || 0, status: getStatus(cr.tsr || 0, "tsr") },
@@ -155,36 +162,36 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
       <div className={styles.chartsGrid}>
         <div className={styles.chartContainer} style={{ gridColumn: '1 / -1' }}>
           <div className={styles.chartHeader}>
-            <h3>Comparativo de Métricas</h3>
-            <select 
-              className={styles.creativeSelect}
-              value={selectedCreative}
-              onChange={(e) => setSelectedCreative(e.target.value)}
-            >
-              <option value="all">Média Geral (Todos)</option>
-              {top_criativos.map((c, i) => (
-                <option key={i} value={c.nome}>{c.nome}</option>
-              ))}
-            </select>
+            <h3>Performance por Criativo</h3>
+            <div className={styles.searchBox}>
+              <input 
+                type="text" 
+                className={styles.chartSearch}
+                placeholder="Buscar criativo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
+                <defs>
                 <linearGradient id="colorElite" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#d946ef" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#d946ef" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorBom" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorMedio" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2}/>
                 </linearGradient>
                 <linearGradient id="colorRuim" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.2}/>
+                  <stop offset="5%" stopColor="#64748b" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#64748b" stopOpacity={0.2}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" opacity={0.3} />

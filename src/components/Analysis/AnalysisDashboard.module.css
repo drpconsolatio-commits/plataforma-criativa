@@ -4,6 +4,30 @@
   gap: 24px;
 }
 
+.searchBox {
+  position: relative;
+  width: 240px;
+}
+
+.chartSearch {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.chartSearch:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-glow);
+  background: var(--bg-base);
+}
+
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
