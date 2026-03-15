@@ -7,6 +7,8 @@ import ChannelColumn from "./ChannelColumn";
 import NewCampaignModal from "../Modal/NewCampaignModal";
 import CampaignDetailView from "../CampaignDetail/CampaignDetailView";
 import ChannelDetailView from "../CampaignDetail/ChannelDetailView";
+import AnalysisUpload from "./AnalysisUpload";
+import AnalysisDetailView from "../Analysis/AnalysisDetailView";
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { Search, Plus, Undo2, Redo2 } from "lucide-react";
@@ -95,6 +97,8 @@ export interface CampaignCard {
   creatives: Creative[];
   pinned: boolean;
   labels: Label[];
+  is_analysis?: boolean;
+  metadata?: any;
 }
 
 export interface Column {
@@ -223,7 +227,9 @@ export default function KanbanBoard() {
           pinned: c.pinned || false,
           labels: c.labels || [],
           checklist: { roteirizacao: c.checklist_roteirizacao || false, edicao: c.checklist_edicao || false },
-          creatives: creativesMap[c.id] || []
+          creatives: creativesMap[c.id] || [],
+          is_analysis: c.is_analysis || false,
+          metadata: c.metadata || {}
         })).sort((a,b) => (a.pinned === b.pinned ? 0 : a.pinned ? -1 : 1))
       }));
       setColumns(newCols);
@@ -308,6 +314,39 @@ export default function KanbanBoard() {
       await supabase.from('creatives').upsert(allCreatives);
     }
   }, []);
+
+  const handleAnalysisComplete = async (result: any) => {
+    const newCard: CampaignCard = {
+      id: crypto.randomUUID(),
+      title: `Análise Meta Ads - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      date: new Date().toLocaleDateString('pt-BR'),
+      checklist: { roteirizacao: false, edicao: false },
+      creatives: [],
+      pinned: false,
+      labels: [],
+      is_analysis: true,
+      metadata: result,
+    };
+
+    // Salvar no Supabase
+    await supabase.from('campaigns').insert({
+      id: newCard.id,
+      title: newCard.title,
+      date: newCard.date,
+      column_id: 'resultados',
+      is_analysis: true,
+      metadata: result,
+      order_index: 0
+    });
+
+    // Atualizar estado local
+    setColumns(prev => prev.map(col => 
+      col.id === 'resultados' 
+        ? { ...col, cards: [newCard, ...col.cards] }
+        : col
+    ));
+    commit(columns); // Commit to history
+  };
 
   const handleUndo = useCallback(async () => {
     const previous = undo();
@@ -1031,6 +1070,15 @@ export default function KanbanBoard() {
 
   /* ---- CAMPAIGN DETAIL VIEW ---- */
   if (activeView.type === "campaign") {
+    if (activeView.card.is_analysis) {
+      return (
+        <AnalysisDetailView 
+          card={activeView.card as any} 
+          onBack={closeCampaign} 
+        />
+      );
+    }
+    
     return (
       <CampaignDetailView
         card={activeView.card}
@@ -1109,21 +1157,18 @@ export default function KanbanBoard() {
   }
 
   /* ---- KANBAN BOARD VIEW ---- */
-  const regularColumns = columns.filter((c) => c.id !== "canais");
   const canaisColumn = columns.find((c) => c.id === "canais");
-
-  // Insert canais column before resultados
   const orderedColumns: (Column | "canais")[] = [];
-  regularColumns.forEach((col) => {
-    if (col.id === "resultados" && canaisColumn) {
-      orderedColumns.push("canais");
+  const desiredOrder = ["inspiracoes", "roteirizacao", "edicao", "canais", "resultados"];
+  
+  desiredOrder.forEach(id => {
+    if (id === "canais") {
+      if (canaisColumn) orderedColumns.push("canais");
+    } else {
+      const col = columns.find(c => c.id === id);
+      if (col) orderedColumns.push(col);
     }
-    orderedColumns.push(col);
   });
-  // If resultados doesn't exist, add canais at the end
-  if (canaisColumn && !orderedColumns.includes("canais")) {
-    orderedColumns.push("canais");
-  }
 
 
   return (
@@ -1211,6 +1256,7 @@ export default function KanbanBoard() {
                 onAddLabel={addLabelToCard}
                 onRemoveLabel={removeLabelFromCard}
                 onRenameCard={renameCard}
+                headerAction={col.id === 'resultados' ? <AnalysisUpload onAnalysisComplete={handleAnalysisComplete} /> : undefined}
               />
             );
           })}

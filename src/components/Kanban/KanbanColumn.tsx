@@ -2,6 +2,7 @@
 
 import styles from "./KanbanColumn.module.css";
 import KanbanCard from "./KanbanCard";
+import AnalysisCard from "./AnalysisCard";
 import type { Column, CampaignCard, Checklist, Label } from "./KanbanBoard";
 import { useDroppable } from "@dnd-kit/core";
 import { Sparkles } from "lucide-react";
@@ -20,6 +21,7 @@ interface Props {
   onAddLabel: (cardId: string, label: Label) => void;
   onRemoveLabel: (cardId: string, labelId: string) => void;
   onRenameCard: (cardId: string, newTitle: string) => void;
+  headerAction?: React.ReactNode;
 }
 
 export default function KanbanColumn({
@@ -32,6 +34,7 @@ export default function KanbanColumn({
   onAddLabel,
   onRemoveLabel,
   onRenameCard,
+  headerAction
 }: Props) {
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
 
@@ -47,6 +50,7 @@ export default function KanbanColumn({
           <h2 className={styles.columnTitle}>{column.title}</h2>
           <span className={styles.count}>{column.cards.length}</span>
         </div>
+        {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
       </div>
 
       <SortableContext
@@ -60,21 +64,34 @@ export default function KanbanColumn({
               <p>Nenhum card ainda</p>
             </div>
           ) : (
-            column.cards.map((card, cardIndex) => (
-              <KanbanCard
-                key={card.id}
-                card={card}
-                colorVar={column.colorVar}
-                index={cardIndex}
-                onOpenFullscreen={() => onOpenCampaign(card, column.id)}
-                onUpdateChecklist={onUpdateChecklist}
-                onDeleteCard={onDeleteCard}
-                onTogglePin={onTogglePin}
-                onAddLabel={onAddLabel}
-                onRemoveLabel={onRemoveLabel}
-                onRenameCard={onRenameCard}
-              />
-            ))
+            column.cards.map((card, cardIndex) => {
+              if (card.is_analysis) {
+                return (
+                  <AnalysisCard
+                    key={card.id}
+                    card={card}
+                    index={cardIndex}
+                    onOpenFullscreen={() => onOpenCampaign(card, column.id)}
+                  />
+                );
+              }
+
+              return (
+                <KanbanCard
+                  key={card.id}
+                  card={card}
+                  colorVar={column.colorVar}
+                  index={cardIndex}
+                  onOpenFullscreen={() => onOpenCampaign(card, column.id)}
+                  onUpdateChecklist={onUpdateChecklist}
+                  onDeleteCard={onDeleteCard}
+                  onTogglePin={onTogglePin}
+                  onAddLabel={onAddLabel}
+                  onRemoveLabel={onRemoveLabel}
+                  onRenameCard={onRenameCard}
+                />
+              );
+            })
           )}
         </div>
       </SortableContext>
