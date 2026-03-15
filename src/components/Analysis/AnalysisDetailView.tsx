@@ -221,15 +221,16 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
             metrics={{
               tsr_avg: analysis?.performance_metrics?.tsr_avg || 0,
               retencao_avg: analysis?.performance_metrics?.retencao_avg || 0,
-              impacto_avg: analysis?.performance_metrics?.impacto_avg || 0
+              impacto_avg: (analysis?.performance_metrics?.impacto_avg > 50) ? analysis?.performance_metrics?.impacto_avg / 10 : (analysis?.performance_metrics?.impacto_avg || 0)
             }} 
             top_criativos={(analysis?.top_criativos || []).map((c: any) => {
               const row = enrichedData.find((r: any) => r['Criativo'] === c.nome);
+              const impMatch = Number(row?.['Impacto']) || 0;
               return {
                 ...c,
                 tsr: Number(row?.['TSR']) || 0,
                 retencao: Number(row?.['Retenção']) || 0,
-                impacto: Number(row?.['Impacto']) || 0
+                impacto: impMatch > 50 ? impMatch / 10 : impMatch
               };
             })} 
             allPlatformCreatives={allCreatives}
@@ -290,7 +291,12 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
                       <td className={styles.metricVal}>{formatNum(row?.['TSR'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Retenção'], 2)}%</td>
-                      <td className={styles.metricVal}>{formatNum(row?.['Impacto'], 2)}%</td>
+                      <td className={styles.metricVal}>
+                        {(() => {
+                          const imp = Number(row?.['Impacto']) || 0;
+                          return formatNum(imp > 50 ? imp / 10 : imp, 2);
+                        })()}%
+                      </td>
                     </tr>
                   );
                 })}
