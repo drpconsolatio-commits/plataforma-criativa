@@ -118,10 +118,14 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <span className={styles.rankNum}>{idx + 1}º</span>
-                        <div className={styles.rankInfo}>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
-                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
-                        </div>
+                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        {tag && (
+                          <>
+                            <span className={styles.rankSeparator}>—</span>
+                            <span className={styles.realTagBadge}>{tag}</span>
+                          </>
+                        )}
+                        <span className={styles.rankSeparator}>—</span>
                         <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
                       </div>
                     );
@@ -153,10 +157,14 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <span className={styles.rankNum}>{idx + 1}º</span>
-                        <div className={styles.rankInfo}>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
-                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
-                        </div>
+                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        {tag && (
+                          <>
+                            <span className={styles.rankSeparator}>—</span>
+                            <span className={styles.realTagBadge}>{tag}</span>
+                          </>
+                        )}
+                        <span className={styles.rankSeparator}>—</span>
                         <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
                       </div>
                     );
@@ -188,10 +196,14 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <span className={styles.rankNum}>{idx + 1}º</span>
-                        <div className={styles.rankInfo}>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
-                          {tag && <span className={styles.realTagBadge}>{tag}</span>}
-                        </div>
+                        <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                        {tag && (
+                          <>
+                            <span className={styles.rankSeparator}>—</span>
+                            <span className={styles.realTagBadge}>{tag}</span>
+                          </>
+                        )}
+                        <span className={styles.rankSeparator}>—</span>
                         <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
                       </div>
                     );
