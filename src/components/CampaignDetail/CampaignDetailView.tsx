@@ -9,6 +9,7 @@ import { ArrowLeft, Check, Sparkles, Pencil, Trash2, Filter, Copy, ArrowRightLef
 import ColumnFilter from "../Common/ColumnFilter";
 import ContextMenu, { ContextMenuAction } from "../Common/ContextMenu";
 import MoveCopyModal from "../Modal/MoveCopyModal";
+import AnalysisUpload from "../Kanban/AnalysisUpload";
 
 interface Props {
   card: { id: string; title: string; date: string; creatives: Creative[] };
@@ -30,6 +31,7 @@ interface Props {
   onDeleteCreative: (creativeId: string) => void;
   onMoveCreative: (creativeId: string, targetCampaignId: string) => void;
   onCopyCreative: (creativeId: string, targetCampaignId: string) => void;
+  onAnalysisComplete?: (result: any) => void;
   allCampaigns: { id: string; title: string; date: string }[];
 }
 
@@ -53,6 +55,7 @@ export default function CampaignDetailView({
   onDeleteCreative,
   onMoveCreative,
   onCopyCreative,
+  onAnalysisComplete,
   allCampaigns,
 }: Props) {
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
@@ -215,6 +218,18 @@ export default function CampaignDetailView({
                 >
                   {card.title}
                 </h1>
+
+                <div className={styles.headerActions}>
+                  {onAnalysisComplete && (
+                    <div className={styles.analysisAction} title="Analisar performance deste card">
+                      <span className={styles.actionLabel}>Analisar Resultados</span>
+                      <AnalysisUpload 
+                        onAnalysisComplete={onAnalysisComplete} 
+                        parentTitle={card.title} 
+                      />
+                    </div>
+                  )}
+                </div>
                 <button
                   className={styles.editTitleBtn}
                   onClick={() => setEditingCampaignTitle(true)}

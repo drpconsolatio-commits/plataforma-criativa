@@ -7,9 +7,10 @@ import styles from './AnalysisUpload.module.css';
 
 interface AnalysisUploadProps {
   onAnalysisComplete: (data: any) => void;
+  parentTitle?: string;
 }
 
-export default function AnalysisUpload({ onAnalysisComplete }: AnalysisUploadProps) {
+export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: AnalysisUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'parsing' | 'analyzing' | 'done' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -112,7 +113,7 @@ export default function AnalysisUpload({ onAnalysisComplete }: AnalysisUploadPro
                                      transformedData[0]?.['Nome do conjunto de anúncios'] || 
                                      null;
           
-          onAnalysisComplete({ ...resultData, detectedCampaignName });
+          onAnalysisComplete({ ...resultData, detectedCampaignName, parentTitle });
           
           setTimeout(() => {
             setStatus('idle');

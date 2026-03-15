@@ -72,6 +72,9 @@ export default function KanbanColumn({
                     card={card}
                     index={cardIndex}
                     onOpenFullscreen={() => onOpenCampaign(card, column.id)}
+                    onDeleteCard={onDeleteCard}
+                    onTogglePin={onTogglePin}
+                    onRenameCard={onRenameCard}
                   />
                 );
               }

@@ -209,7 +209,6 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
                   <th>ROAS</th>
                   <th>CPR</th>
                   <th>CPS</th>
-                  <th>CPL</th>
                   <th>TSR</th>
                   <th>Retenção</th>
                   <th>Impacto</th>
@@ -226,9 +225,15 @@ export default function AnalysisDetailView({ card, onBack }: AnalysisDetailViewP
                       <td>{(Number(row?.['Impressões']) || 0).toLocaleString('pt-BR')}</td>
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>R$ {formatNum(row?.['Valor gasto'] || row?.['Valor'], 2).replace('.', ',')}</td>
                       <td className={styles.metricVal}>{Number(row?.['ROAS']) > 0 ? formatNum(row?.['ROAS'], 2).replace('.', ',') + 'x' : '--'}</td>
-                      <td className={styles.metricVal}>{Number(row?.['CPR']) > 0 ? 'R$ ' + formatNum(row?.['CPR'], 2).replace('.', ',') : '--'}</td>
+                      <td className={styles.metricVal}>
+                        {(() => {
+                          const cprVal = Number(row?.['CPR']);
+                          const cplVal = Number(row?.['CPL']);
+                          const finalCpr = cprVal > 0 ? cprVal : (cplVal > 0 ? cplVal : 0);
+                          return finalCpr > 0 ? 'R$ ' + formatNum(finalCpr, 2).replace('.', ',') : '--';
+                        })()}
+                      </td>
                       <td className={styles.metricVal}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
-                      <td className={styles.metricVal}>{Number(row?.['CPL']) > 0 ? 'R$ ' + formatNum(row?.['CPL'], 2).replace('.', ',') : '--'}</td>
                       <td className={styles.metricVal}>{formatNum(row?.['TSR'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Retenção'], 2)}%</td>
                       <td className={styles.metricVal}>{formatNum(row?.['Impacto'], 2)}%</td>

@@ -318,14 +318,15 @@ export default function KanbanBoard() {
   }, []);
 
   const handleAnalysisComplete = async (result: any) => {
-    const campaignName = result.detectedCampaignName || "Geral";
+    // Prioritizar título herdado do card pai, senão usar detectado ou "Geral"
+    const sourceTitle = result.parentTitle || result.detectedCampaignName || "Geral";
     const now = new Date();
     const formattedDate = now.toLocaleDateString('pt-BR');
     const formattedTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const newCard: CampaignCard = {
       id: crypto.randomUUID(),
-      title: `[Análise] ${campaignName} - ${formattedDate} ${formattedTime}`,
+      title: `[Análise] ${sourceTitle} - ${formattedDate} ${formattedTime}`,
       date: formattedDate,
       checklist: { roteirizacao: false, edicao: false },
       creatives: [],
@@ -1111,6 +1112,7 @@ export default function KanbanBoard() {
         onCopyCreative={(creativeId: string, targetId: string) =>
           copyCreative(creativeId, activeView.card.id, targetId)
         }
+        onAnalysisComplete={handleAnalysisComplete}
         allCampaigns={columns.flatMap(c => c.cards).map(c => ({ id: c.id, title: c.title, date: c.date }))}
         hookTypes={customHookTypes}
         formats={customFormats}
