@@ -176,7 +176,6 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
-                <defs>
                 <linearGradient id="colorElite" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#d946ef" stopOpacity={0.8}/>
                   <stop offset="95%" stopColor="#d946ef" stopOpacity={0.2}/>
