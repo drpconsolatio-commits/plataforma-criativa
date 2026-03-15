@@ -4,7 +4,6 @@
   gap: 24px;
 }
 
-
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -91,90 +90,3 @@
   border-radius: 1px;
   opacity: 0.3;
 }
-
-.chartsGrid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-}
-
-.chartContainer {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 24px;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.topListContainer {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.chartContainer h3 {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-  letter-spacing: -1px;
-  margin-bottom: 8px;
-}
-
-.topListContainer h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-.topList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.topItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px;
-  background: var(--bg-raised);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  transition: background var(--transition-fast);
-}
-
-.topItem:hover {
-  background: var(--bg-surface);
-}
-
-.crName {
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
-}
-
-.crBadge {
-  font-size: 0.7rem;
-  padding: 3px 10px;
-  border-radius: 100px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.elite { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-.bom { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
-.ruim { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
