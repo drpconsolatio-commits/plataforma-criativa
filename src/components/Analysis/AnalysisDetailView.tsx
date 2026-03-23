@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import styles from "./AnalysisDetailView.module.css";
-import { ArrowLeft, Search, Zap, Target, MessageSquare, Sparkles } from "lucide-react";
+import { ArrowLeft, Search, Zap, Target, MessageSquare, Sparkles, ArrowUp, ArrowDown } from "lucide-react";
 import AnalysisDashboard from "./AnalysisDashboard";
 import type { CampaignCard } from "../Kanban/KanbanBoard";
 
@@ -45,16 +45,50 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
     return tags;
   };
 
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
   const filteredData = useMemo(() => {
     if (!enrichedData) return [];
-    return enrichedData.filter((row: any) => {
+    const filtered = enrichedData.filter((row: any) => {
       if (!filter) return true;
       const q = filter.toLowerCase();
       const criativo = String(row?.['Criativo'] || "").toLowerCase();
       const campanha = String(row?.['Campanha'] || row?.['Nome da campanha'] || "").toLowerCase();
       return criativo.includes(q) || campanha.includes(q);
     });
-  }, [enrichedData, filter]);
+
+    if (sortConfig !== null) {
+      filtered.sort((a: any, b: any) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+
+        // Lidar com hífen e nulos na ordenação (vão pro final)
+        if (valA === "-" || valA === undefined || valA === null) valA = -99999999;
+        if (valB === "-" || valB === undefined || valB === null) valB = -99999999;
+
+        // Se forem strings puras (ex: nomes de criativos)
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return sortConfig.direction === 'asc'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [enrichedData, filter, sortConfig]);
 
   const structured = analysis?.insights_estruturados;
 
@@ -63,13 +97,10 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
     return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
   };
 
-  const cleanName = (n: string) => n.replace(/\[.*?\]\s*/g, '').trim();
-
   const getMatchedTag = (originalName: string, type: 'hook' | 'format' | 'cta') => {
-    const cleaned = cleanName(originalName);
     const platformCr = allCreatives?.find((pc: any) =>
-      pc.name.toLowerCase().includes(cleaned.toLowerCase()) ||
-      cleaned.toLowerCase().includes(pc.name.toLowerCase())
+      pc.name.toLowerCase().includes(originalName.toLowerCase()) ||
+      originalName.toLowerCase().includes(pc.name.toLowerCase())
     );
     if (!platformCr) return null;
     if (type === 'hook') return platformCr.hookType;
@@ -113,13 +144,13 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 GANCHO (TSR)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['TSR']) || 0) - (Number(a['TSR']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                  {[...enrichedData].sort((a: any, b: any) => (Number(b['TSR']) || 0) - (Number(a['TSR']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
                     const tag = getMatchedTag(cr['Criativo'], 'hook');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <div className={styles.rankMainRow}>
                           <span className={styles.rankNum}>{idx + 1}º</span>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankName}>{cr['Criativo']}</span>
                           <span className={styles.rankVal}>{formatNum(cr['TSR'])}%</span>
                         </div>
                         {tag && (
@@ -152,13 +183,13 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 MEIO (HOLD)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['Retenção']) || 0) - (Number(a['Retenção']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                  {[...enrichedData].sort((a: any, b: any) => (Number(b['Retenção']) || 0) - (Number(a['Retenção']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
                     const tag = getMatchedTag(cr['Criativo'], 'format');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <div className={styles.rankMainRow}>
                           <span className={styles.rankNum}>{idx + 1}º</span>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankName}>{cr['Criativo']}</span>
                           <span className={styles.rankVal}>{formatNum(cr['Retenção'])}%</span>
                         </div>
                         {tag && (
@@ -191,13 +222,13 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 IMPACTO (CTR)</h4>
                 <div className={styles.rankingList}>
-                  {enrichedData.sort((a: any, b: any) => (Number(b['Impacto']) || 0) - (Number(a['Impacto']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
+                  {[...enrichedData].sort((a: any, b: any) => (Number(b['Impacto']) || 0) - (Number(a['Impacto']) || 0)).slice(0, 3).map((cr: any, idx: number) => {
                     const tag = getMatchedTag(cr['Criativo'], 'cta');
                     return (
                       <div key={idx} className={styles.rankingItem} title={cr['Criativo']}>
                         <div className={styles.rankMainRow}>
                           <span className={styles.rankNum}>{idx + 1}º</span>
-                          <span className={styles.rankName}>{cleanName(cr['Criativo'])}</span>
+                          <span className={styles.rankName}>{cr['Criativo']}</span>
                           <span className={styles.rankVal}>{formatNum(cr['Impacto'])}%</span>
                         </div>
                         {tag && (
@@ -295,16 +326,36 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th className={styles.stickyCol}>Criativo</th>
-                  <th>Impressões</th>
-                  <th>Alcance</th>
-                  <th>Valor</th>
-                  <th>ROAS</th>
-                  <th>CPR</th>
-                  <th>CPS</th>
-                  <th>TSR</th>
-                  <th>Retenção</th>
-                  <th>Impacto</th>
+                  <th className={styles.stickyCol} onClick={() => requestSort('Criativo')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Criativo {sortConfig?.key === 'Criativo' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('Impressões')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Impressões {sortConfig?.key === 'Impressões' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('Alcance')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Alcance {sortConfig?.key === 'Alcance' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('Valor gasto')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Valor {sortConfig?.key === 'Valor gasto' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('ROAS')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>ROAS {sortConfig?.key === 'ROAS' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('CPR')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>CPR {sortConfig?.key === 'CPR' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('CPS')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>CPS {sortConfig?.key === 'CPS' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('TSR')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>TSR {sortConfig?.key === 'TSR' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('Retenção')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Retenção {sortConfig?.key === 'Retenção' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
+                  <th onClick={() => requestSort('Impacto')} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Impacto {sortConfig?.key === 'Impacto' && (sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}</div>
+                  </th>
                 </tr>
               </thead>
               <tbody>

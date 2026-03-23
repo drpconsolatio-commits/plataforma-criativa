@@ -59,8 +59,18 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
               return "Sem Nome";
             };
 
-            const cleanCreativeName = (name: string) => {
-              return name.replace(/\[.*?\]\s*/g, '').trim();
+            // Função robusta para limpar valores monetários que possam vir sujos do CSV com "R$" ou vírgulas
+            const parseNumStr = (val: any) => {
+              if (val === undefined || val === null || val === '-') return 0;
+              let s = String(val).trim();
+              s = s.replace(/[R$\s]/g, '');
+              if (s.includes(',') && s.includes('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+              } else if (s.includes(',')) {
+                s = s.replace(',', '.');
+              }
+              const parsed = parseFloat(s);
+              return isNaN(parsed) ? 0 : parsed;
             };
 
             // Mapeamento Técnico Novo com multiplicador de porcentagem (ex: 0.18 -> 18.0)
@@ -71,19 +81,18 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
             const hookRate = rawHook === "-" ? "-" : parseFloat(rawHook) * 100;
             const holdRate = rawHold === "-" ? "-" : parseFloat(rawHold) * 100;
             const ctaRate = rawCta === "-" ? "-" : parseFloat(rawCta) * 100;
-            const spend = parseFloat(String(getVal(['spend', 'valor gasto', 'valor', 'spent'])));
-            const roas = parseFloat(String(getVal(['roas', 'retorno'])));
-            const cpr = parseFloat(String(getVal(['cpr', 'cost per registration', 'custo por registro'])));
-            const cps = parseFloat(String(getVal(['cps', 'cost per sale', 'custo por venda'])));
-            const cpl = parseFloat(String(getVal(['cpl', 'cost per lead', 'custo por lead'])));
+            const spend = parseNumStr(getVal(['spend', 'valor gasto', 'valor', 'spent']));
+            const roas = parseNumStr(getVal(['roas', 'retorno']));
+            const cpr = parseNumStr(getVal(['cpr', 'cost per registration', 'custo por registro']));
+            const cps = parseNumStr(getVal(['cps', 'cost per sale', 'custo por venda']));
+            const cpl = parseNumStr(getVal(['cpl', 'cost per lead', 'custo por lead']));
             const alc = parseInt(String(getVal(['alcance', 'reach']))) || 0;
             const imp = parseInt(String(getVal(['impressões', 'impressoes', 'impressions']))) || 0;
-            const adName = getName(['nome_anuncio', 'criativo', 'nome do anúncio', 'ad name']);
+            const adName = String(getName(['nome_anuncio', 'criativo', 'nome do anúncio', 'ad name'])).trim();
 
             return {
               ...row,
               'Criativo': adName,
-              'Criativo Limpo': cleanCreativeName(adName),
               'TSR': hookRate,
               'Retenção': holdRate,
               'Impacto': ctaRate,
