@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import styles from "./AnalysisDetailView.module.css";
-import { ArrowLeft, Search, Zap, Target, MessageSquare } from "lucide-react";
+import { ArrowLeft, Search, Zap, Target, MessageSquare, Sparkles } from "lucide-react";
 import AnalysisDashboard from "./AnalysisDashboard";
 import type { CampaignCard } from "../Kanban/KanbanBoard";
 
@@ -210,6 +210,44 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                   })}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bloco: Laboratório de Criativos */}
+        <div className={styles.labSection}>
+          <div className={styles.labHeader}>
+            <h2 className={styles.sectionTitle}>Laboratório de Criativos</h2>
+            <span className={styles.labBadge}>
+              <Sparkles size={12} /> Sugestões de Combinação
+            </span>
+          </div>
+
+          <div className={styles.labGrid}>
+            <div className={`${styles.labCard} ${styles.labCardHover}`}>
+              <div className={styles.labCardAccent} />
+              <div className={styles.labCardHeader}>
+                <span className={`${styles.labRecipeBadge} ${styles.labBadgeHook}`}>Hook: VID002</span>
+                <span className={styles.labCardPlus}>+</span>
+                <span className={`${styles.labRecipeBadge} ${styles.labBadgeHold}`}>Meio: VID005</span>
+                <span className={styles.labCardPlus}>+</span>
+                <span className={`${styles.labRecipeBadge} ${styles.labBadgeCta}`}>CTA: VID001</span>
+              </div>
+              <p className={styles.labCardBody}>
+                O <strong>VID002</strong> tem um TSR excelente (45%), mas perde retenção. O <strong>VID005</strong> segura a atenção (Hold de 35%). Juntar o início de um com o meio do outro pode gerar um criativo vencedor.
+              </p>
+            </div>
+
+            <div className={`${styles.labCard} ${styles.labCardHover}`}>
+              <div className={styles.labCardAccent} />
+              <div className={styles.labCardHeader}>
+                <span className={`${styles.labRecipeBadge} ${styles.labBadgeHook}`}>Hook: VID008</span>
+                <span className={styles.labCardPlus}>+</span>
+                <span className={`${styles.labRecipeBadge} ${styles.labBadgeHold}`}>Meio: VID003</span>
+              </div>
+              <p className={styles.labCardBody}>
+                O gancho do <strong>VID008</strong> gerou curiosidade acima da média, combinando perfeitamente com a estruturação narrativa forte que segurou o público no <strong>VID003</strong>.
+              </p>
             </div>
           </div>
         </div>

@@ -9,8 +9,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .header {
@@ -117,9 +124,17 @@
   border-radius: 12px;
 }
 
-.hookIcon { color: var(--accent-warning); }
-.midIcon { color: var(--accent-primary); }
-.ctaIcon { color: var(--accent-success); }
+.hookIcon {
+  color: var(--accent-warning);
+}
+
+.midIcon {
+  color: var(--accent-primary);
+}
+
+.ctaIcon {
+  color: var(--accent-success);
+}
 
 .insightTitle {
   font-size: 0.9rem;
@@ -209,7 +224,8 @@
 
 .table {
   width: 100%;
-  min-width: 900px; /* Força scroll apenas na tabela */
+  min-width: 900px;
+  /* Força scroll apenas na tabela */
   border-collapse: collapse;
   font-size: 0.9rem;
   text-align: left;
@@ -362,7 +378,8 @@
 }
 
 .rankTagRow {
-  padding-left: 34px; /* rankNum(24) + gap(10) */
+  padding-left: 34px;
+  /* rankNum(24) + gap(10) */
   display: flex;
 }
 
@@ -377,4 +394,150 @@
   border-radius: 4px;
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
+}
+
+/* Laboratório de Criativos (Simulando Tailwind: bg-slate-50, rounded-xl, text-sm, text-gray-600) */
+.labSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.labHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.labBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 102, 241, 0.1);
+  /* bg-indigo-100 */
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  /* border-indigo-200 */
+  padding: 4px 12px;
+  border-radius: 9999px;
+  /* rounded-full */
+  font-size: 0.75rem;
+  /* text-xs */
+  font-weight: 700;
+  /* font-bold */
+  text-transform: uppercase;
+  color: #4f46e5;
+  /* text-indigo-600 */
+  letter-spacing: 0.05em;
+  /* tracking-wider */
+}
+
+.labGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.labCard {
+  background: var(--bg-surface);
+  /* fallback */
+  background-color: #f8fafc;
+  /* bg-slate-50 */
+  border: 1px solid #e0e7ff;
+  /* border-indigo-100 */
+  border-radius: 12px;
+  /* rounded-xl */
+  padding: 20px;
+  /* p-5 */
+  box-shadow: var(--shadow-sm);
+  /* shadow-sm */
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.labCardHover:hover {
+  box-shadow: var(--shadow-md);
+  /* hover:shadow-md */
+  transform: translateY(-2px);
+}
+
+.labCardAccent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #818cf8 0%, #a855f7 100%);
+  /* bg-gradient-to-b from-indigo-400 to-purple-500 */
+}
+
+.labCardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  /* mb-4 */
+}
+
+.labRecipeBadge {
+  font-size: 10px;
+  /* text-[10px] */
+  font-weight: 700;
+  /* font-bold */
+  text-transform: uppercase;
+  padding: 4px 8px;
+  /* px-2 py-1 */
+  border-radius: 4px;
+  /* rounded */
+  border: 1px solid;
+  letter-spacing: 0.05em;
+}
+
+.labBadgeHook {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+/* blue-100, text-blue-800, border-blue-200 */
+.labBadgeHold {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border-color: #e9d5ff;
+}
+
+/* purple-100, text-purple-800, border-purple-200 */
+.labBadgeCta {
+  background: #fce7f3;
+  color: #9d174d;
+  border-color: #fbcfe8;
+}
+
+/* pink-100, text-pink-800, border-pink-200 */
+
+.labCardPlus {
+  color: #9ca3af;
+  /* text-gray-400 */
+  font-size: 0.75rem;
+  /* text-xs */
+  font-weight: 700;
+  /* font-bold */
+}
+
+.labCardBody {
+  font-size: 0.875rem;
+  /* text-sm */
+  color: #4b5563;
+  /* text-gray-600 */
+  line-height: 1.625;
+  /* leading-relaxed */
+  margin: 0;
+}
+
+.labCardBody strong {
+  color: #111827;
+  /* text-gray-900 */
+  font-weight: 700;
 }
