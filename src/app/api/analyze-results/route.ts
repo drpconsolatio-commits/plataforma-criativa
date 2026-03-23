@@ -70,12 +70,13 @@ const responseSchema = {
 export async function POST(req: Request) {
   try {
     const { spreadsheetData } = await req.json();
-    if (!spreadsheetData || !Array.isArray(spreadsheetData)) return new Response(JSON.stringify({ error: "Dados inválidos." }), { status: 400 });
+    const tsr_valid = spreadsheetData.filter((r: any) => r['TSR'] !== "-" && !isNaN(Number(r['TSR'])));
+    const ret_valid = spreadsheetData.filter((r: any) => r['Retenção'] !== "-" && !isNaN(Number(r['Retenção'])));
+    const imp_valid = spreadsheetData.filter((r: any) => r['Impacto'] !== "-" && !isNaN(Number(r['Impacto'])));
 
-    const total = spreadsheetData.length;
-    const tsr_avg = spreadsheetData.reduce((acc, r) => acc + (Number(r['TSR']) || 0), 0) / total;
-    const retencao_avg = spreadsheetData.reduce((acc, r) => acc + (Number(r['Retenção']) || 0), 0) / total;
-    const impacto_avg = spreadsheetData.reduce((acc, r) => acc + (Number(r['Impacto']) || 0), 0) / total;
+    const tsr_avg = tsr_valid.length > 0 ? tsr_valid.reduce((acc: any, r: any) => acc + Number(r['TSR']), 0) / tsr_valid.length : 0;
+    const retencao_avg = ret_valid.length > 0 ? ret_valid.reduce((acc: any, r: any) => acc + Number(r['Retenção']), 0) / ret_valid.length : 0;
+    const impacto_avg = imp_valid.length > 0 ? imp_valid.reduce((acc: any, r: any) => acc + Number(r['Impacto']), 0) / imp_valid.length : 0;
 
     // Regex Flexível: VIDXXX agora é o identificador mestre
     const vidRegex = /VID\d+/i;
@@ -139,7 +140,7 @@ Use rigorosamente estes rótulos para classificações:
 O 'resumo_textual' deve ser um parágrafo executivo que sintetiza a performance geral sem repetir dados técnicos brutos.`;
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { responseMimeType: "application/json", responseSchema } });
 
-    const aiInput = enrichedData.map(d => ({
+    const aiInput = enrichedData.map((d: any) => ({
       n: d['Criativo'],
       m: { TSR: d['TSR'], Ret: d['Retenção'], Imp: d['Impacto'], R: d['ROAS'] },
       t: d.tags_banco
@@ -147,10 +148,10 @@ O 'resumo_textual' deve ser um parágrafo executivo que sintetiza a performance 
 
     const result = await model.generateContent([{ text: systemPrompt }, { text: JSON.stringify(aiInput) }]);
     const parsed = JSON.parse(result.response.text());
-    parsed.performance_metrics = { 
-      tsr_avg: Number(tsr_avg.toFixed(2)), 
-      retencao_avg: Number(retencao_avg.toFixed(2)), 
-      impacto_avg: Number(impacto_avg.toFixed(2)) 
+    parsed.performance_metrics = {
+      tsr_avg: Number(tsr_avg.toFixed(2)),
+      retencao_avg: Number(retencao_avg.toFixed(2)),
+      impacto_avg: Number(impacto_avg.toFixed(2))
     };
 
     // Padronizar classificações vindas da IA para garantir consistência visual

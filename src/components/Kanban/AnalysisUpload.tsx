@@ -33,7 +33,7 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
           const wsname = wb.SheetNames[0];
           const ws = wb.Sheets[wsname];
           const data = XLSX.utils.sheet_to_json(ws);
-          
+
           if (!data || data.length === 0) {
             setErrorMsg("A planilha está vazia.");
             setStatus('error');
@@ -64,9 +64,13 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
             };
 
             // Mapeamento Técnico Novo com multiplicador de porcentagem (ex: 0.18 -> 18.0)
-            const hookRate = parseFloat(String(getVal(['hook_rate', 'tsr', 'thumb stop rate']))) * 100;
-            const holdRate = parseFloat(String(getVal(['hold_rate', 'retenção', 'retenção média']))) * 100;
-            const ctaRate = parseFloat(String(getVal(['cta_rate', 'impacto', 'outbound ctr']))) * 100;
+            const rawHook = String(getVal(['hook_rate', 'tsr', 'thumb stop rate'])).trim();
+            const rawHold = String(getVal(['hold_rate', 'retenção', 'retenção média'])).trim();
+            const rawCta = String(getVal(['cta_rate', 'impacto', 'outbound ctr'])).trim();
+
+            const hookRate = rawHook === "-" ? "-" : parseFloat(rawHook) * 100;
+            const holdRate = rawHold === "-" ? "-" : parseFloat(rawHold) * 100;
+            const ctaRate = rawCta === "-" ? "-" : parseFloat(rawCta) * 100;
             const spend = parseFloat(String(getVal(['spend', 'valor gasto', 'valor', 'spent'])));
             const roas = parseFloat(String(getVal(['roas', 'retorno'])));
             const cpr = parseFloat(String(getVal(['cpr', 'cost per registration', 'custo por registro'])));
@@ -112,14 +116,14 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
           }
 
           setStatus('done');
-          
+
           // Capturar o nome da campanha do primeiro registro do CSV
-          const detectedCampaignName = transformedData[0]?.['Nome da campanha'] || 
-                                     transformedData[0]?.['Nome do conjunto de anúncios'] || 
-                                     null;
-          
+          const detectedCampaignName = transformedData[0]?.['Nome da campanha'] ||
+            transformedData[0]?.['Nome do conjunto de anúncios'] ||
+            null;
+
           onAnalysisComplete({ ...resultData, detectedCampaignName, parentTitle });
-          
+
           setTimeout(() => {
             setStatus('idle');
             setIsUploading(false);
@@ -147,14 +151,14 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
   return (
     <div className={styles.container}>
       <label className={`${styles.uploadBtn} ${isUploading ? styles.disabled : ''}`}>
-        <input 
-          type="file" 
-          accept=".xlsx, .xls, .csv" 
-          onChange={handleFileUpload} 
+        <input
+          type="file"
+          accept=".xlsx, .xls, .csv"
+          onChange={handleFileUpload}
           disabled={isUploading}
           hidden
         />
-        
+
         {status === 'idle' && (
           <Paperclip size={14} />
         )}

@@ -21,7 +21,7 @@ const MetricCard = ({ label, value, unit, status }: MetricProps) => {
   const getIdealRate = () => {
     if (label.includes("Thumb Stop")) return "> 25%";
     if (label.includes("Retenção")) return "> 35%";
-    return "> 1.5%";
+    return "> 15%";
   };
 
   return (
@@ -39,9 +39,9 @@ const MetricCard = ({ label, value, unit, status }: MetricProps) => {
         </span>
       </div>
       <div className={styles.statusIndicator}>
-        <div 
-          className={styles.statusDot} 
-          style={{ background: getStatusColor() }} 
+        <div
+          className={styles.statusDot}
+          style={{ background: getStatusColor() }}
         />
         <div className={styles.statusLine} />
       </div>
@@ -82,32 +82,32 @@ export default function AnalysisDashboard({ metrics, top_criativos, allPlatformC
       return "Ruim";
     }
     // Impacto (CTR)
-    if (val > 2.0) return "Elite";
-    if (val >= 1.5) return "Bom";
-    if (val >= 0.8) return "Médio";
+    if (val > 20.0) return "Elite";
+    if (val >= 15.0) return "Bom";
+    if (val >= 8.0) return "Médio";
     return "Ruim";
   };
 
   return (
     <div className={styles.dashboard}>
       <div className={styles.metricsGrid}>
-        <MetricCard 
-          label="Thumb Stop Rate (Médio)" 
-          value={metrics.tsr_avg} 
-          unit="%" 
-          status={getStatus(metrics.tsr_avg, "tsr")} 
+        <MetricCard
+          label="Thumb Stop Rate (Médio)"
+          value={metrics.tsr_avg}
+          unit="%"
+          status={getStatus(metrics.tsr_avg, "tsr")}
         />
-        <MetricCard 
-          label="Retenção (Média)" 
-          value={metrics.retencao_avg} 
-          unit="%" 
-          status={getStatus(metrics.retencao_avg, "retencao")} 
+        <MetricCard
+          label="Retenção (Média)"
+          value={metrics.retencao_avg}
+          unit="%"
+          status={getStatus(metrics.retencao_avg, "retencao")}
         />
-        <MetricCard 
-          label="Impacto (CTR Médio)" 
-          value={metrics.impacto_avg} 
-          unit="%" 
-          status={getStatus(metrics.impacto_avg, "impacto")} 
+        <MetricCard
+          label="Impacto (CTR Médio)"
+          value={metrics.impacto_avg}
+          unit="%"
+          status={getStatus(metrics.impacto_avg, "impacto")}
         />
       </div>
     </div>

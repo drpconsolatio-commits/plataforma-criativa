@@ -26,22 +26,22 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
   // Função robusta de extração de tags baseada em colchetes e padrão VID
   const extractTags = (name: string) => {
     if (!name) return [];
-    
+
     // Busca tudo que estiver entre colchetes [TAG]
     const bracketMatches = name.match(/\[(.*?)\]/g);
     const tags = bracketMatches ? bracketMatches.map(m => m.slice(1, -1)) : [];
-    
+
     // Adiciona o padrão VID\d+ se não estiver nos colchetes
     const vidMatch = name.match(/VID\d+/i);
     if (vidMatch && !tags.some(t => t.toUpperCase() === vidMatch[0].toUpperCase())) {
       tags.push(vidMatch[0].toUpperCase());
     }
-    
+
     // Fallback: Se não encontrou nada, retorna o nome simplificado (primeiras 2 palavras)
     if (tags.length === 0) {
       return [name.split(' ').slice(0, 2).join(' ')];
     }
-    
+
     return tags;
   };
 
@@ -67,7 +67,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
 
   const getMatchedTag = (originalName: string, type: 'hook' | 'format' | 'cta') => {
     const cleaned = cleanName(originalName);
-    const platformCr = allCreatives?.find((pc: any) => 
+    const platformCr = allCreatives?.find((pc: any) =>
       pc.name.toLowerCase().includes(cleaned.toLowerCase()) ||
       cleaned.toLowerCase().includes(pc.name.toLowerCase())
     );
@@ -109,7 +109,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
               <p className={styles.insightText}>
                 {structured?.hook?.analise || "Análise de retenção inicial não disponível."}
               </p>
-              
+
               <div className={styles.rankingSection}>
                 <h4 className={styles.rankingTitle}>TOP 3 GANCHO (TSR)</h4>
                 <div className={styles.rankingList}>
@@ -181,7 +181,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                 </div>
                 <div>
                   <h3 className={styles.insightTitle}>CTA / IMPACTO</h3>
-                  <span className={styles.benchmarkNote}>Ideal: &gt; 1.5% CTR de Impacto</span>
+                  <span className={styles.benchmarkNote}>Ideal: &gt; 15% CTR de Impacto</span>
                 </div>
               </div>
               <p className={styles.insightText}>
@@ -217,12 +217,12 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
         {/* Bloco 2: Dashboards Defensivos */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Dashboards de Performance</h2>
-          <AnalysisDashboard 
+          <AnalysisDashboard
             metrics={{
               tsr_avg: analysis?.performance_metrics?.tsr_avg || 0,
               retencao_avg: analysis?.performance_metrics?.retencao_avg || 0,
               impacto_avg: (analysis?.performance_metrics?.impacto_avg > 50) ? analysis?.performance_metrics?.impacto_avg / 10 : (analysis?.performance_metrics?.impacto_avg || 0)
-            }} 
+            }}
             top_criativos={(analysis?.top_criativos || []).map((c: any) => {
               const row = enrichedData.find((r: any) => r['Criativo'] === c.nome);
               const impMatch = Number(row?.['Impacto']) || 0;
@@ -232,7 +232,7 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                 retencao: Number(row?.['Retenção']) || 0,
                 impacto: impMatch > 50 ? impMatch / 10 : impMatch
               };
-            })} 
+            })}
             allPlatformCreatives={allCreatives}
           />
         </div>
@@ -243,16 +243,16 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
             <h2 className={styles.sectionTitle}>Dados Detalhados</h2>
             <div className={styles.searchWrapper}>
               <Search size={14} className={styles.searchIcon} />
-              <input 
-                type="text" 
-                placeholder="Filtrar criativo..." 
+              <input
+                type="text"
+                placeholder="Filtrar criativo..."
                 className={styles.searchInput}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               />
             </div>
           </div>
-          
+
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
@@ -289,13 +289,17 @@ export default function AnalysisDetailView({ card, onBack, allCreatives }: Analy
                         })()}
                       </td>
                       <td className={`${styles.metricVal} ${styles.noWrap}`}>{Number(row?.['CPS']) > 0 ? 'R$ ' + formatNum(row?.['CPS'], 2).replace('.', ',') : '--'}</td>
-                      <td className={styles.metricVal}>{formatNum(row?.['TSR'], 2)}%</td>
-                      <td className={styles.metricVal}>{formatNum(row?.['Retenção'], 2)}%</td>
-                      <td className={styles.metricVal}>
-                        {(() => {
+                      <td className={styles.metricVal} style={{ textAlign: row?.['TSR'] === "-" ? "center" : undefined }}>
+                        {row?.['TSR'] === "-" ? "-" : `${formatNum(row?.['TSR'], 2)}%`}
+                      </td>
+                      <td className={styles.metricVal} style={{ textAlign: row?.['Retenção'] === "-" ? "center" : undefined }}>
+                        {row?.['Retenção'] === "-" ? "-" : `${formatNum(row?.['Retenção'], 2)}%`}
+                      </td>
+                      <td className={styles.metricVal} style={{ textAlign: row?.['Impacto'] === "-" ? "center" : undefined }}>
+                        {row?.['Impacto'] === "-" ? "-" : (() => {
                           const imp = Number(row?.['Impacto']) || 0;
-                          return formatNum(imp > 50 ? imp / 10 : imp, 2);
-                        })()}%
+                          return `${formatNum(imp > 50 ? imp / 10 : imp, 2)}%`;
+                        })()}
                       </td>
                     </tr>
                   );
