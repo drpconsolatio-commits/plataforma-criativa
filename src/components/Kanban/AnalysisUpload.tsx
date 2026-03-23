@@ -28,8 +28,8 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
         setErrorMsg('');
 
         try {
-          const bstr = evt.target?.result;
-          const wb = XLSX.read(bstr, { type: 'binary' });
+          const buffer = evt.target?.result as ArrayBuffer;
+          const wb = XLSX.read(buffer, { type: 'array', cellText: false, codepage: 65001 });
           const wsname = wb.SheetNames[0];
           const ws = wb.Sheets[wsname];
           const data = XLSX.utils.sheet_to_json(ws);
@@ -147,7 +147,7 @@ export default function AnalysisUpload({ onAnalysisComplete, parentTitle }: Anal
         }
       };
 
-      reader.readAsBinaryString(file);
+      reader.readAsArrayBuffer(file);
 
     } catch (err: any) {
       console.error("-> [Frontend] Erro ao ler arquivo:", err);
